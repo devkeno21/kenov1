@@ -1,8 +1,8 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "2b73f8fc-3513-43d8-9e14-ce751eb3f373",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "c23e9fdc-f607-4fb0-ac9f-fc3a44e08a83",
+  "prevId": "2b73f8fc-3513-43d8-9e14-ce751eb3f373",
   "tables": {
     "bets": {
       "name": "bets",
@@ -103,7 +103,15 @@
           "default": "(now())"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "game_idx": {
+          "name": "game_idx",
+          "columns": [
+            "game_number"
+          ],
+          "isUnique": false
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {
         "draws_game_number": {

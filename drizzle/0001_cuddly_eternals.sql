@@ -1,0 +1,1 @@
+CREATE INDEX `game_idx` ON `draws` (`game_number`);
