@@ -3,6 +3,9 @@ import mysql from "mysql2/promise";
 import { migrate } from 'drizzle-orm/mysql2/migrator';
 import { env } from "~/env.mjs"; 
 
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
+
+
 const dbHost = env.DATABASE_HOST
 const dbUsername = env.DATABASE_USERNAME
 const dbPassword = env.DATABASE_PASSWORD
