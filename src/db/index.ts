@@ -9,9 +9,9 @@ const dbPassword = env.DATABASE_PASSWORD
 
 const connection = mysql.createPool({
   database: "kenov1",
-  host: dbHost!,
-  user: dbUsername!,
-  password: dbPassword!
+  host: dbHost,
+  user: dbUsername,
+  password: dbPassword
 });
  
 const db = drizzle(connection);
