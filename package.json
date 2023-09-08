@@ -19,6 +19,7 @@
     "@trpc/next": "^10.34.0",
     "@trpc/react-query": "^10.34.0",
     "@trpc/server": "^10.34.0",
+    "chance": "^1.1.11",
     "dotenv": "^16.3.1",
     "drizzle-orm": "^0.28.6",
     "mysql2": "^3.6.0",
@@ -29,6 +30,7 @@
     "zod": "^3.21.4"
   },
   "devDependencies": {
+    "@types/chance": "^1.1.4",
     "@types/eslint": "^8.44.2",
     "@types/node": "^18.16.0",
     "@types/react": "^18.2.20",
