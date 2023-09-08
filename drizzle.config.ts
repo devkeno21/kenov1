@@ -1,7 +1,7 @@
 import type { Config } from "drizzle-kit";
 import 'dotenv/config'
 import { env } from "~/env.mjs";
-// import { env } from "~/env.mjs";
+
 
 const dbUrl = env.DATABASE_URL
 export default {
