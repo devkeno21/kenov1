@@ -1,6 +1,7 @@
 import type { Config } from "drizzle-kit";
 import 'dotenv/config'
 import { env } from "~/env.mjs";
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 
 
 const dbUrl = env.DATABASE_URL
