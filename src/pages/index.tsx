@@ -1,10 +1,16 @@
 import React, { useEffect } from "react";
 import { useState } from "react";
 import {Chance} from 'chance'
+import { api } from "~/utils/api";
 
 const Keno = () => {
   const [picked, setPicked] = useState<number[]>([]);
   const [drawnNumbers, setDrawnNumbers] = useState<number[]>([]);
+
+  const { data, isLoading } = api.example.hello.useQuery({text: "Keno"})
+
+  const { data: bets, isLoading: isBetsLoaidng} = api.bets.getAllBets.useQuery()
+
 
   const chance = new Chance();
 
@@ -81,6 +87,9 @@ const Keno = () => {
     </div>
   );
 
+  console.log(bets)
+
+
   return (
     <div className="flex mt-20">
       <div className="flex flex-col items-start">{rows}</div>
@@ -101,6 +110,7 @@ const Keno = () => {
         >
           Clear
         </button>
+        <div>{data?.greeting}</div>
       </div>
     </div>
   );
