@@ -1,9 +1,128 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "33e4efc4-835b-40c2-99ef-efd9f47f9739",
+  "id": "9cc3b2e8-f54f-4994-a45b-13978d14a740",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
+    "bets": {
+      "name": "bets",
+      "columns": {
+        "ticket_number": {
+          "name": "ticket_number",
+          "type": "serial",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "wager_amount": {
+          "name": "wager_amount",
+          "type": "double",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "odds": {
+          "name": "odds",
+          "type": "float",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "game_number": {
+          "name": "game_number",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "hits": {
+          "name": "hits",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "is_reedeemed": {
+          "name": "is_reedeemed",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "reedeemed_amount": {
+          "name": "reedeemed_amount",
+          "type": "double",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "timestamp": {
+          "name": "timestamp",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "(now())"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "bets_ticket_number": {
+          "name": "bets_ticket_number",
+          "columns": [
+            "ticket_number"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "draws": {
+      "name": "draws",
+      "columns": {
+        "game_number": {
+          "name": "game_number",
+          "type": "serial",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "numbers_drawn": {
+          "name": "numbers_drawn",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "timestamp": {
+          "name": "timestamp",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "(now())"
+        }
+      },
+      "indexes": {
+        "game_idx": {
+          "name": "game_idx",
+          "columns": [
+            "game_number"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "draws_game_number": {
+          "name": "draws_game_number",
+          "columns": [
+            "game_number"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
     "users": {
       "name": "users",
       "columns": {

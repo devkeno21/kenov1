@@ -1,12 +1,20 @@
 import { drizzle } from "drizzle-orm/mysql2";
 import mysql from "mysql2/promise";
 import { migrate } from 'drizzle-orm/mysql2/migrator';
- 
+import { env } from "~/env.mjs"; 
+
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
+
+
+const dbHost = env.DATABASE_HOST
+const dbUsername = env.DATABASE_USERNAME
+const dbPassword = env.DATABASE_PASSWORD
+
 const connection = mysql.createPool({
   database: "kenov1",
-  host: process.env["DATABASE_HOST"],
-  user: process.env["DATABASE_USERNAME"],
-  password: process.env["DATABASE_PASSWORD"]
+  host: dbHost,
+  user: dbUsername,
+  password: dbPassword
 });
  
 const db = drizzle(connection);

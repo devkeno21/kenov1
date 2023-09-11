@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useState } from "react";
-import { Chance } from "chance";
+import {Chance} from 'chance'
 
 const Keno = () => {
   const [picked, setPicked] = useState<number[]>([]);

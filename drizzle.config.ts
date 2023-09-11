@@ -1,12 +1,15 @@
-import type { Config } from 'drizzle-kit';
-import * as dotenv from 'dotenv';
-dotenv.config({ path: '.env.local' });
+import type { Config } from "drizzle-kit";
+import 'dotenv/config'
+import { env } from "~/env.mjs";
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 
+
+const dbUrl = env.DATABASE_URL
 export default {
-  schema: './db/schema.ts',
+  schema: "./src/db/schema.ts",
   out: "./drizzle",
   driver: "mysql2",
   dbCredentials: {
-    connectionString: process.env["DATABASE_URL"]!,
+    connectionString: dbUrl!,
   },
 } satisfies Config;
