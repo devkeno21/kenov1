@@ -1,3 +1,4 @@
+import { relations } from "drizzle-orm";
 import {
   boolean,
   double,
@@ -45,8 +46,43 @@ export const draws = mysqlTable(
 export type Draw = typeof draws.$inferSelect; // return type when queried
 export type NewDraw = typeof draws.$inferInsert; // insert type
 
-export const bets = mysqlTable("bets", {
-  ticket_number: serial("ticket_number").primaryKey(),
+// One to many relation between draws and bets.
+export const drawsRelation = relations(draws, ({many}) => ({
+  bets: many(bets)
+}))
+
+export const bets = mysqlTable(
+  "bets",
+  {
+    ticket_number: serial("ticket_number").primaryKey(),
+    wager_amount: double("wager_amount"),
+    odds: float("odds"),
+    game_number: int("game_number"),
+    hits: int("hits"),
+    is_reedeemed: boolean("is_reedeemed"),
+    reedeemed_amount: double("reedeemed_amount"),
+    timestamp: timestamp("timestamp").defaultNow(),
+  },
+  (bets) => ({
+    ticketIdx: index("ticket_idx").on(bets.ticket_number),
+  }),
+);
+
+export type Bet = typeof bets.$inferSelect; // return type when queried
+export type NewBet = typeof bets.$inferInsert; // insert type
+
+// One to many relation between draws and bets.
+export const betsRelation = relations(bets, ({one}) => ({
+  draw: one(draws, {
+    fields: [bets.game_number],
+    references: [draws.game_number]
+  })
+}))
+
+
+export const cancelledBets = mysqlTable("cancelledBets", {
+  cancelled_id: serial("cancelled_id").primaryKey(),
+  ticket_number: serial("ticket_number"),
   wager_amount: double("wager_amount"),
   odds: float("odds"),
   game_number: int("game_number"),
@@ -56,5 +92,14 @@ export const bets = mysqlTable("bets", {
   timestamp: timestamp("timestamp").defaultNow(),
 });
 
-export type Bet = typeof bets.$inferSelect; // return type when queried
-export type NewBet = typeof bets.$inferInsert; // insert type
+export type CancelledBet = typeof cancelledBets.$inferSelect; // return type when queried
+export type NewCancelledBet = typeof cancelledBets.$inferInsert; // insert type
+
+// One to One relations between bets and cancelled bets => betsRelation
+
+export const cancelledBetsRelation = relations(bets, ({ one }) => ({
+  cancelledBets: one(cancelledBets, {
+    fields: [bets.ticket_number],
+    references: [cancelledBets.ticket_number],
+  }),
+}));
