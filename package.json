@@ -9,7 +9,8 @@
     "start": "next start",
     "migration:generate": "drizzle-kit generate:mysql --schema=./src/db/schema.ts",
     "db:push": "drizzle-kit push:mysql --config=./drizzle.config.ts",
-    "introspect": "drizzle-kit introspect:mysql"
+    "introspect": "drizzle-kit introspect:mysql",
+    "drizzle studio": "drizzle-kit studio --port 4000 --verbose"
   },
   "dependencies": {
     "@planetscale/database": "^1.11.0",
@@ -22,6 +23,7 @@
     "chance": "^1.1.11",
     "dotenv": "^16.3.1",
     "drizzle-orm": "^0.28.6",
+    "drizzle-zod": "^0.5.1",
     "mysql2": "^3.6.0",
     "next": "^13.4.13",
     "react": "18.2.0",
