@@ -7,10 +7,19 @@ const Keno = () => {
   const [picked, setPicked] = useState<number[]>([]);
   const [drawnNumbers, setDrawnNumbers] = useState<number[]>([]);
 
-  const { data, isLoading } = api.example.hello.useQuery({text: "Keno"})
+  // const { data, isLoading } = api.example.hello.useQuery({text: "Keno"})
 
-  const { data: bets, isLoading: isBetsLoaidng} = api.bets.getAllBets.useQuery()
+  // const { data: bets, isLoading: isBetsLoaidng} = api.bets.getAllBets.useQuery()
 
+  // const { data: draws, isLoading: isDrawsLoading} = api.bets.getAllDraws.useQuery()
+
+  // const { data: selectedBet, isLoading: isSelectedBetLoading} = api.bets.getBetById.useQuery({ ticket_number: 2})
+
+  const { mutate, isLoading: isBetPlaced } = api.bets.placeBet.useMutation()
+
+  const { mutate : updateBet, isLoading: isBetUpdating } = api.bets.updateBetByTicketNumber.useMutation()
+
+  const { mutate : deleteBet, isLoading: isBetDeleting } = api.bets.deleteBetByTicketNumber.useMutation()
 
   const chance = new Chance();
 
@@ -87,8 +96,26 @@ const Keno = () => {
     </div>
   );
 
-  console.log(bets)
+  // console.log(bets)
+  // if(!draws) return
 
+  interface DrawNumbers {
+    [key: number]: string
+  }
+
+  // draws.map(draw => console.log(draw))
+  // bets?.map(bets => console.log(bets.ticketNumber))
+  // const numbersDrawn: DrawNumbers | undefined = draws[0]?.numbersDrawn as DrawNumbers
+  // console.log(numbersDrawn)
+  // const arrayOfValues = Object.values(numbersDrawn).map(value => parseInt(value));
+  
+  // console.log(arrayOfValues.map(item => console.log(item)));
+
+  // mutate({ data: {ticketNumber: 4, gameNumber: 5, hits: 3, isReedeemed: 1, odds: 5, reedeemedAmount: 10, wagerAmount: 10 }})
+
+  // console.log(selectedBet)
+
+  // mutate({ data: { ticketNumber: 5, gameNumber: 5, hits: 3, isReedeemed: 1, odds: 5, reedeemedAmount: 10, wagerAmount: 10 }})
 
   return (
     <div className="flex mt-20">
@@ -98,9 +125,16 @@ const Keno = () => {
         <DrawnNumbers />
 
         <button
-          className="bg-green-700 h-fit text-white px-4 py-2 rounded-lg m-2"
-          disabled={picked.length === 0}
-          onClick={() => drawNumbers()}
+          className="bg-green-700 h-fit text-white px-4 py-2 rounded-lg m-2 cursor-pointer"
+          // disabled={picked.length === 0}
+          // onClick={() => drawNumbers()}
+          onClick={() => {
+            console.log("place clicked")
+            // updateBet({ ticketNumber: 10, data: {reedeemedAmount: 100000}})
+            deleteBet({ ticketNumber: 2})
+            // mutate({ data: { gameNumber: 6, hits: 3, isReedeemed: 0, odds: 5, reedeemedAmount: 10, wagerAmount: 10 }})
+          }
+          }
         >
           Place bet
         </button>
@@ -110,7 +144,7 @@ const Keno = () => {
         >
           Clear
         </button>
-        <div>{data?.greeting}</div>
+        {/* <div>{data?.greeting}</div> */}
       </div>
     </div>
   );
