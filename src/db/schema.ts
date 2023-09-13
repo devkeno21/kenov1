@@ -82,7 +82,7 @@ export const betsRelation = relations(bets, ({one}) => ({
 
 export const cancelledBets = mysqlTable("cancelledBets", {
   cancelled_id: serial("cancelled_id").primaryKey(),
-  ticket_number: serial("ticket_number"),
+  ticket_number: int("ticket_number"),
   wager_amount: double("wager_amount"),
   odds: float("odds"),
   game_number: int("game_number"),
@@ -95,7 +95,7 @@ export const cancelledBets = mysqlTable("cancelledBets", {
 export type CancelledBet = typeof cancelledBets.$inferSelect; // return type when queried
 export type NewCancelledBet = typeof cancelledBets.$inferInsert; // insert type
 
-// One to One relations between bets and cancelled bets => betsRelation
+// One to One relations between bets and cancelled bets => cancelledBetsRelation
 
 export const cancelledBetsRelation = relations(bets, ({ one }) => ({
   cancelledBets: one(cancelledBets, {

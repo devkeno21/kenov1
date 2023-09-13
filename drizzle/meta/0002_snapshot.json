@@ -1,0 +1,259 @@
+{
+  "version": "5",
+  "dialect": "mysql",
+  "id": "5dbc45e1-5d92-4b7a-abaa-a2a02c28cbb3",
+  "prevId": "12e83b38-075a-456b-850f-34b12aa7f2be",
+  "tables": {
+    "bets": {
+      "name": "bets",
+      "columns": {
+        "ticket_number": {
+          "name": "ticket_number",
+          "type": "serial",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "wager_amount": {
+          "name": "wager_amount",
+          "type": "double",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "odds": {
+          "name": "odds",
+          "type": "float",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "game_number": {
+          "name": "game_number",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "hits": {
+          "name": "hits",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "is_reedeemed": {
+          "name": "is_reedeemed",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "reedeemed_amount": {
+          "name": "reedeemed_amount",
+          "type": "double",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "timestamp": {
+          "name": "timestamp",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "(now())"
+        }
+      },
+      "indexes": {
+        "ticket_idx": {
+          "name": "ticket_idx",
+          "columns": [
+            "ticket_number"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "bets_ticket_number": {
+          "name": "bets_ticket_number",
+          "columns": [
+            "ticket_number"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "cancelledBets": {
+      "name": "cancelledBets",
+      "columns": {
+        "cancelled_id": {
+          "name": "cancelled_id",
+          "type": "serial",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "ticket_number": {
+          "name": "ticket_number",
+          "type": "serial",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": true
+        },
+        "wager_amount": {
+          "name": "wager_amount",
+          "type": "double",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "odds": {
+          "name": "odds",
+          "type": "float",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "game_number": {
+          "name": "game_number",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "hits": {
+          "name": "hits",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "is_reedeemed": {
+          "name": "is_reedeemed",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "reedeemed_amount": {
+          "name": "reedeemed_amount",
+          "type": "double",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "timestamp": {
+          "name": "timestamp",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "(now())"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "cancelledBets_cancelled_id": {
+          "name": "cancelledBets_cancelled_id",
+          "columns": [
+            "cancelled_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "draws": {
+      "name": "draws",
+      "columns": {
+        "game_number": {
+          "name": "game_number",
+          "type": "serial",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "numbers_drawn": {
+          "name": "numbers_drawn",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "timestamp": {
+          "name": "timestamp",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "(now())"
+        }
+      },
+      "indexes": {
+        "game_idx": {
+          "name": "game_idx",
+          "columns": [
+            "game_number"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "draws_game_number": {
+          "name": "draws_game_number",
+          "columns": [
+            "game_number"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "users": {
+      "name": "users",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "full_name": {
+          "name": "full_name",
+          "type": "varchar(256)",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "name_idx": {
+          "name": "name_idx",
+          "columns": [
+            "full_name"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "users_id": {
+          "name": "users_id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    }
+  },
+  "schemas": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  }
+}

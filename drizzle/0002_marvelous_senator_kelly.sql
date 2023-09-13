@@ -1,0 +1,1 @@
+CREATE INDEX `ticket_idx` ON `bets` (`ticket_number`);

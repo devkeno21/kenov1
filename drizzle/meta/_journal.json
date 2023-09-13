@@ -15,6 +15,20 @@
       "when": 1694630053401,
       "tag": "0001_pretty_mojo",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1694632624431,
+      "tag": "0002_marvelous_senator_kelly",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1694633061031,
+      "tag": "0003_nervous_stellaris",
+      "breakpoints": true
     }
   ]
 }
