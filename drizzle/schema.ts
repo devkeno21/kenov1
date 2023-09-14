@@ -18,6 +18,23 @@ export const bets = mysqlTable("bets", {
 	}
 });
 
+export const cancelledBets = mysqlTable("cancelledBets", {
+	cancelledId: serial("cancelled_id").notNull(),
+	ticketNumber: int("ticket_number"),
+	wagerAmount: double("wager_amount"),
+	odds: float("odds"),
+	gameNumber: int("game_number"),
+	hits: int("hits"),
+	isReedeemed: tinyint("is_reedeemed"),
+	reedeemedAmount: double("reedeemed_amount"),
+	timestamp: timestamp("timestamp", { mode: 'string' }).defaultNow(),
+},
+(table) => {
+	return {
+		cancelledBetsCancelledId: primaryKey(table.cancelledId),
+	}
+});
+
 export const draws = mysqlTable("draws", {
 	gameNumber: serial("game_number").notNull(),
 	numbersDrawn: json("numbers_drawn"),
