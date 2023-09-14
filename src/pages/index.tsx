@@ -3,6 +3,8 @@ import { useState } from "react";
 import {Chance} from 'chance'
 import { api } from "~/utils/api";
 
+type DrawNumbers = Record<number, string>
+
 const Keno = () => {
   const [picked, setPicked] = useState<number[]>([]);
   const [drawnNumbers, setDrawnNumbers] = useState<number[]>([]);
@@ -58,11 +60,11 @@ const Keno = () => {
     }
   }
 
-  const drawNumbers = () => {
-    const winningDraw = chance.unique(chance.natural, 5, { min: 1, max: 80 });
-    setDrawnNumbers(winningDraw);
-    setPicked([]);
-  };
+  // const drawNumbers = () => {
+  //   const winningDraw = chance.unique(chance.natural, 5, { min: 1, max: 80 });
+  //   setDrawnNumbers(winningDraw);
+  //   setPicked([]);
+  // };
 
   const SelectedNumbers = () => (
     <div className="border p-2 h-fit shadow-md flex flex-col">
@@ -99,9 +101,7 @@ const Keno = () => {
   // console.log(bets)
   // if(!draws) return
 
-  interface DrawNumbers {
-    [key: number]: string
-  }
+ 
 
   // draws.map(draw => console.log(draw))
   // bets?.map(bets => console.log(bets.ticketNumber))
