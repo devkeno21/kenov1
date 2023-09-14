@@ -7,7 +7,6 @@ import { eq } from "drizzle-orm";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { createInsertSchema } from "drizzle-zod";
 
-// import { Draw, NewDraw, draws } from "~/db/schema";
 
 const connection = await mysql.createConnection({
   uri: process.env.DATABASE_URL,
@@ -25,8 +24,6 @@ export const drawsRouter = createTRPCRouter({
       // console.log(NewBet);
     }),
 
-  
-
   getAllDraws: publicProcedure.query(async () => {
     const result = await db.query.draws.findMany({
       limit: 20,
@@ -37,9 +34,11 @@ export const drawsRouter = createTRPCRouter({
   getDrawByGameNumber: publicProcedure
     .input(z.object({ gameNumber: z.number() }))
     .query(async ({ input }) => {
-      const result = await db.query.draws.findMany({
-        where: eq(schema.draws.gameNumber, input.gameNumber),
-      });
+      const result = await db
+        .select()
+        .from(schema.draws)
+        .where(eq(schema.draws.gameNumber, input.gameNumber));
+
       return result;
     }),
 
