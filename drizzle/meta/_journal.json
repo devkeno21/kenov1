@@ -29,6 +29,20 @@
       "when": 1694633061031,
       "tag": "0003_nervous_stellaris",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1694939367607,
+      "tag": "0004_amazing_liz_osborn",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1694939637016,
+      "tag": "0005_loud_oracle",
+      "breakpoints": true
     }
   ]
 }

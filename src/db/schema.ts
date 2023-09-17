@@ -39,7 +39,7 @@ export const draws = mysqlTable(
     timestamp: timestamp("timestamp").defaultNow(),
   },
   (draws) => ({
-    gameIdx: index("game_idx").on(draws.game_number),
+    gameIdx: index("game_time_idx").on(draws.timestamp),
   }),
 );
 
@@ -64,7 +64,7 @@ export const bets = mysqlTable(
     timestamp: timestamp("timestamp").defaultNow(),
   },
   (bets) => ({
-    ticketIdx: index("ticket_idx").on(bets.ticket_number),
+    ticketIdx: index("ticket_time_idx").on(bets.timestamp),
   }),
 );
 
