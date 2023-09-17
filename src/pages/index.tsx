@@ -1,16 +1,10 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { useState } from "react";
-import { Chance } from "chance";
 import { api } from "~/utils/api";
-import Countdown from "react-countdown";
+import { useSelector } from "react-redux";
+import { RootState } from "~/store/store";
 
 type DrawNumbers = Record<number, string>;
-type Timer = {
-  hours: number;
-  minutes: number;
-  seconds: number;
-  completed: boolean;
-};
 
 const Keno = () => {
   const [picked, setPicked] = useState<number[]>([]);
@@ -32,7 +26,6 @@ const Keno = () => {
   const { mutate: deleteBet, isLoading: isBetDeleting } =
     api.bets.deleteBetByTicketNumber.useMutation();
 
-  const chance = new Chance();
 
   const toggleNumber = (number: number) => {
     if (picked.includes(number)) {
@@ -68,12 +61,6 @@ const Keno = () => {
       rows.push(<hr key={1} className="my-2" />);
     }
   }
-
-  // const drawNumbers = () => {
-  //   const winningDraw = chance.unique(chance.natural, 5, { min: 1, max: 80 });
-  //   setDrawnNumbers(winningDraw);
-  //   setPicked([]);
-  // };
 
   const SelectedNumbers = () => (
     <div className="flex h-fit flex-col border p-2 shadow-md">
@@ -124,38 +111,17 @@ const Keno = () => {
 
   // mutate({ data: { ticketNumber: 5, gameNumber: 5, hits: 3, isReedeemed: 1, odds: 5, reedeemedAmount: 10, wagerAmount: 10 }})
 
-  const Callback = () => {
-    
-    return ( <p>Timer up close game and draw numbers.</p>)
-  }
-  
-  const renderer = ({
-    hours,
-    minutes,
-    seconds,
-    completed,
-  }: Timer) => {
-    if (completed) {
-      // Render a complete state
-      return <Callback />;
-    } else {
-      // Render a countdown
-      return (
-        <span>
-          {hours}:{minutes}:{seconds}
-        </span>
-      );
-    }
-  };
 
+  const minuteState = useSelector((state: RootState) => state.timer.minutes);
+  const secState = useSelector((state: RootState) => state.timer.seconds)
+  
   return (
     <div className="mt-20 flex">
       <div className="flex flex-col items-start">{rows}</div>
       <div className="flex flex-col">
-        <Countdown date={Date.now() + 240000} renderer={renderer} />
+        {minuteState}:{secState}
         <SelectedNumbers />
         <DrawnNumbers />
-
         <button
           className="m-2 h-fit cursor-pointer rounded-lg bg-green-700 px-4 py-2 text-white"
           // disabled={picked.length === 0}
