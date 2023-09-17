@@ -56,7 +56,7 @@ const Keno = () => {
     rows.push(row);
 
     if (i === 30) {
-      rows.push(<hr className="my-2" />);
+      rows.push(<hr key={1} className="my-2" />);
     }
   }
 
@@ -131,7 +131,7 @@ const Keno = () => {
           onClick={() => {
             console.log("place clicked")
             // updateBet({ ticketNumber: 10, data: {reedeemedAmount: 100000}})
-            deleteBet({ ticketNumber: 2})
+            deleteBet({ ticketNumber: 3})
             // mutate({ data: { gameNumber: 6, hits: 3, isReedeemed: 0, odds: 5, reedeemedAmount: 10, wagerAmount: 10 }})
           }
           }

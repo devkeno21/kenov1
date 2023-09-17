@@ -65,11 +65,18 @@ export const betsRouter = createTRPCRouter({
   deleteBetByTicketNumber: publicProcedure
     .input(z.object({ ticketNumber: z.number() }))
     .mutation(async ({ input }) => {
+      const deletedRow = await db
+        .select()
+        .from(schema.bets)
+        .where(eq(schema.bets.ticketNumber, input.ticketNumber));
+      const insertIntoCancelled = await db
+        .insert(schema.cancelledBets)
+        .values(deletedRow);
       const result = await db
         .delete(schema.bets)
         .where(eq(schema.bets.ticketNumber, input.ticketNumber));
 
-        // TODO: Add this row to cancelled bets
-        return result
+      // TODO: Add this row to cancelled bets
+      return deletedRow;
     }),
 });

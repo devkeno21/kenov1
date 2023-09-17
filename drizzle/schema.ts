@@ -1,4 +1,4 @@
-import { mysqlTable, mysqlSchema, AnyMySqlColumn, primaryKey, serial, double, float, int, tinyint, timestamp, json, index, varchar } from "drizzle-orm/mysql-core"
+import { mysqlTable, mysqlSchema, AnyMySqlColumn, index, primaryKey, serial, double, float, int, tinyint, timestamp, json, varchar } from "drizzle-orm/mysql-core"
 import { sql } from "drizzle-orm"
 
 
@@ -14,6 +14,7 @@ export const bets = mysqlTable("bets", {
 },
 (table) => {
 	return {
+		ticketTimeIdx: index("ticket_time_idx").on(table.timestamp),
 		betsTicketNumber: primaryKey(table.ticketNumber),
 	}
 });
@@ -42,6 +43,7 @@ export const draws = mysqlTable("draws", {
 },
 (table) => {
 	return {
+		gameTimeIdx: index("game_time_idx").on(table.timestamp),
 		drawsGameNumber: primaryKey(table.gameNumber),
 	}
 });
