@@ -3,6 +3,8 @@ import { useState } from "react";
 import {Chance} from 'chance'
 import { api } from "~/utils/api";
 
+type DrawNumbers = Record<number, string>
+
 const Keno = () => {
   const [picked, setPicked] = useState<number[]>([]);
   const [drawnNumbers, setDrawnNumbers] = useState<number[]>([]);
@@ -54,15 +56,15 @@ const Keno = () => {
     rows.push(row);
 
     if (i === 30) {
-      rows.push(<hr className="my-2" />);
+      rows.push(<hr key={1} className="my-2" />);
     }
   }
 
-  const drawNumbers = () => {
-    const winningDraw = chance.unique(chance.natural, 5, { min: 1, max: 80 });
-    setDrawnNumbers(winningDraw);
-    setPicked([]);
-  };
+  // const drawNumbers = () => {
+  //   const winningDraw = chance.unique(chance.natural, 5, { min: 1, max: 80 });
+  //   setDrawnNumbers(winningDraw);
+  //   setPicked([]);
+  // };
 
   const SelectedNumbers = () => (
     <div className="border p-2 h-fit shadow-md flex flex-col">
@@ -99,9 +101,7 @@ const Keno = () => {
   // console.log(bets)
   // if(!draws) return
 
-  interface DrawNumbers {
-    [key: number]: string
-  }
+ 
 
   // draws.map(draw => console.log(draw))
   // bets?.map(bets => console.log(bets.ticketNumber))
@@ -131,7 +131,7 @@ const Keno = () => {
           onClick={() => {
             console.log("place clicked")
             // updateBet({ ticketNumber: 10, data: {reedeemedAmount: 100000}})
-            deleteBet({ ticketNumber: 2})
+            deleteBet({ ticketNumber: 3})
             // mutate({ data: { gameNumber: 6, hits: 3, isReedeemed: 0, odds: 5, reedeemedAmount: 10, wagerAmount: 10 }})
           }
           }

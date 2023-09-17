@@ -1,7 +1,11 @@
 {
   "version": "5",
   "dialect": "mysql",
+<<<<<<< HEAD
   "id": "12e83b38-075a-456b-850f-34b12aa7f2be",
+=======
+  "id": "d73ec635-81f7-43b7-ac61-f5c661fa7b24",
+>>>>>>> 38716aa12512e902444b2d8dc0a9b907e40b6fdc
   "prevId": "9cc3b2e8-f54f-4994-a45b-13978d14a740",
   "tables": {
     "bets": {
@@ -65,7 +69,19 @@
           "default": "(now())"
         }
       },
+<<<<<<< HEAD
       "indexes": {},
+=======
+      "indexes": {
+        "ticket_time_idx": {
+          "name": "ticket_time_idx",
+          "columns": [
+            "timestamp"
+          ],
+          "isUnique": false
+        }
+      },
+>>>>>>> 38716aa12512e902444b2d8dc0a9b907e40b6fdc
       "foreignKeys": {},
       "compositePrimaryKeys": {
         "bets_ticket_number": {
@@ -89,10 +105,17 @@
         },
         "ticket_number": {
           "name": "ticket_number",
+<<<<<<< HEAD
           "type": "serial",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": true
+=======
+          "type": "int",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+>>>>>>> 38716aa12512e902444b2d8dc0a9b907e40b6fdc
         },
         "wager_amount": {
           "name": "wager_amount",
@@ -184,10 +207,17 @@
         }
       },
       "indexes": {
+<<<<<<< HEAD
         "game_idx": {
           "name": "game_idx",
           "columns": [
             "game_number"
+=======
+        "game_time_idx": {
+          "name": "game_time_idx",
+          "columns": [
+            "timestamp"
+>>>>>>> 38716aa12512e902444b2d8dc0a9b907e40b6fdc
           ],
           "isUnique": false
         }

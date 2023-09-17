@@ -7,7 +7,7 @@
     "dev": "next dev",
     "lint": "next lint",
     "start": "next start",
-    "migration:generate": "drizzle-kit generate:mysql --schema=./src/db/schema.ts",
+    "migration:generate": "drizzle-kit generate:mysql",
     "db:push": "drizzle-kit push:mysql --config=./drizzle.config.ts",
     "introspect": "drizzle-kit introspect:mysql",
     "drizzle studio": "drizzle-kit studio --port 4000 --verbose"

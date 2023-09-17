@@ -4,14 +4,15 @@ import * as schema from "../../../../drizzle/schema";
 import mysql from "mysql2/promise";
 import { eq } from "drizzle-orm";
 
-import { Draw, NewDraw, draws } from "~/db/schema";
-
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
-import { DrawSchema, NewDrawSchema } from "~/zod-types";
+import { createInsertSchema } from "drizzle-zod";
+
 
 const connection = await mysql.createConnection({
   uri: process.env.DATABASE_URL,
 });
+
+const DrawSchema = createInsertSchema(schema.draws);
 
 const db = drizzle(connection, { schema, mode: "planetscale" });
 
@@ -19,11 +20,9 @@ export const drawsRouter = createTRPCRouter({
   createDraw: publicProcedure
     .input(z.object({ data: DrawSchema }))
     .query(async ({ input }) => {
-      return await db.insert(draws).values(input.data);
+      return await db.insert(schema.draws).values(input.data);
       // console.log(NewBet);
     }),
-
-  
 
   getAllDraws: publicProcedure.query(async () => {
     const result = await db.query.draws.findMany({
@@ -33,30 +32,32 @@ export const drawsRouter = createTRPCRouter({
   }),
 
   getDrawByGameNumber: publicProcedure
-    .input(z.object({ game_number: z.number() }))
+    .input(z.object({ gameNumber: z.number() }))
     .query(async ({ input }) => {
-      const result = await db.query.draws.findMany({
-        where: eq(draws.game_number, input.game_number),
-      });
+      const result = await db
+        .select()
+        .from(schema.draws)
+        .where(eq(schema.draws.gameNumber, input.gameNumber));
+
       return result;
     }),
 
   updateDrawByGamenumber: publicProcedure
-    .input(z.object({ game_number: z.number(), data: NewDrawSchema }))
-    .query(async ({ input }) => {
+    .input(z.object({ gameNumber: z.number(), data: DrawSchema }))
+    .mutation(async ({ input }) => {
       const result = await db
-        .update(draws)
+        .update(schema.draws)
         .set(input.data)
-        .where(eq(draws.game_number, input.game_number));
+        .where(eq(schema.draws.gameNumber, input.gameNumber));
       return result;
     }),
 
   deleteDrawByGamenumber: publicProcedure
-    .input(z.object({ game_number: z.number() }))
+    .input(z.object({ gameNumber: z.number() }))
     .query(async ({ input }) => {
       const result = await db
-        .delete(draws)
-        .where(eq(draws.game_number, input.game_number));
+        .delete(schema.draws)
+        .where(eq(schema.draws.gameNumber, input.gameNumber));
       return result;
     }),
 });
