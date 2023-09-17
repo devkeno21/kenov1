@@ -7,6 +7,7 @@ import { eq } from "drizzle-orm";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { createInsertSchema } from "drizzle-zod";
 
+import * as crypto from 'crypto'
 
 const connection = await mysql.createConnection({
   uri: process.env.DATABASE_URL,
@@ -20,7 +21,9 @@ export const drawsRouter = createTRPCRouter({
   createDraw: publicProcedure
     .input(z.object({ data: DrawSchema }))
     .query(async ({ input }) => {
-      return await db.insert(schema.draws).values(input.data);
+      const drawnNumbers = getRNG()
+      const data = {...input.data, numbersDrawn: JSON.stringify(drawnNumbers)}
+      return await db.insert(schema.draws).values(data);
       // console.log(NewBet);
     }),
 
@@ -61,3 +64,23 @@ export const drawsRouter = createTRPCRouter({
       return result;
     }),
 });
+
+
+// RNG function
+function getRNG(count:number=20, minValue:number=1, maxValue:number=80):number[]{
+  let selected = [];
+  // let drawnNumbers: {[key: number]: number} = {}
+  const rangeSize = Math.abs(maxValue - minValue) + 1
+
+  while(selected.length < count){
+      const randomBuffer = crypto.randomBytes(Math.ceil(Math.log2(rangeSize) / 8));
+      const randomNum = randomBuffer.readUIntLE(0, randomBuffer.length) % rangeSize;
+      
+      if (selected.indexOf(randomNum) === -1){
+          selected.push(randomNum);
+          // drawnNumbers[selected.length] = randomNum
+      }            
+  }
+
+  return selected
+}
