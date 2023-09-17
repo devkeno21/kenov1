@@ -1,9 +1,16 @@
 import React, { useEffect } from "react";
 import { useState } from "react";
-import {Chance} from 'chance'
+import { Chance } from "chance";
 import { api } from "~/utils/api";
+import Countdown from "react-countdown";
 
-type DrawNumbers = Record<number, string>
+type DrawNumbers = Record<number, string>;
+type Timer = {
+  hours: number;
+  minutes: number;
+  seconds: number;
+  completed: boolean;
+};
 
 const Keno = () => {
   const [picked, setPicked] = useState<number[]>([]);
@@ -17,11 +24,13 @@ const Keno = () => {
 
   // const { data: selectedBet, isLoading: isSelectedBetLoading} = api.bets.getBetById.useQuery({ ticket_number: 2})
 
-  const { mutate, isLoading: isBetPlaced } = api.bets.placeBet.useMutation()
+  const { mutate, isLoading: isBetPlaced } = api.bets.placeBet.useMutation();
 
-  const { mutate : updateBet, isLoading: isBetUpdating } = api.bets.updateBetByTicketNumber.useMutation()
+  const { mutate: updateBet, isLoading: isBetUpdating } =
+    api.bets.updateBetByTicketNumber.useMutation();
 
-  const { mutate : deleteBet, isLoading: isBetDeleting } = api.bets.deleteBetByTicketNumber.useMutation()
+  const { mutate: deleteBet, isLoading: isBetDeleting } =
+    api.bets.deleteBetByTicketNumber.useMutation();
 
   const chance = new Chance();
 
@@ -42,7 +51,7 @@ const Keno = () => {
       <div className="flex" key={i}>
         {rowNumbers.map((number) => (
           <button
-            className={`w-12 h-12 border border-black rounded-full flex justify-center items-center m-1 hover:bg-slate-600 hover:text-white ${
+            className={`m-1 flex h-12 w-12 items-center justify-center rounded-full border border-black hover:bg-slate-600 hover:text-white ${
               picked.includes(number) ? "bg-red-500 text-white" : "border-black"
             }`}
             key={number}
@@ -67,13 +76,13 @@ const Keno = () => {
   // };
 
   const SelectedNumbers = () => (
-    <div className="border p-2 h-fit shadow-md flex flex-col">
+    <div className="flex h-fit flex-col border p-2 shadow-md">
       <span className="text-xl">Your selected numbers: </span>
       <div className="flex flex-row">
         {picked.map((num) => (
           <div
             key={num}
-            className="w-12 h-12 border border-black rounded-full flex justify-center items-center bg-slate-600 text-white m-1"
+            className="m-1 flex h-12 w-12 items-center justify-center rounded-full border border-black bg-slate-600 text-white"
           >
             {num}
           </div>
@@ -83,13 +92,13 @@ const Keno = () => {
   );
 
   const DrawnNumbers = () => (
-    <div className="border p-2 h-fit shadow-md flex flex-col">
+    <div className="flex h-fit flex-col border p-2 shadow-md">
       <span className="text-xl">Drawn numbers: </span>
       <div className="flex flex-row">
         {drawnNumbers.map((num) => (
           <div
             key={num}
-            className="w-12 h-12 border border-black rounded-full flex justify-center items-center bg-slate-600 text-white m-1"
+            className="m-1 flex h-12 w-12 items-center justify-center rounded-full border border-black bg-slate-600 text-white"
           >
             {num}
           </div>
@@ -101,14 +110,12 @@ const Keno = () => {
   // console.log(bets)
   // if(!draws) return
 
- 
-
   // draws.map(draw => console.log(draw))
   // bets?.map(bets => console.log(bets.ticketNumber))
   // const numbersDrawn: DrawNumbers | undefined = draws[0]?.numbersDrawn as DrawNumbers
   // console.log(numbersDrawn)
   // const arrayOfValues = Object.values(numbersDrawn).map(value => parseInt(value));
-  
+
   // console.log(arrayOfValues.map(item => console.log(item)));
 
   // mutate({ data: {ticketNumber: 4, gameNumber: 5, hits: 3, isReedeemed: 1, odds: 5, reedeemedAmount: 10, wagerAmount: 10 }})
@@ -117,29 +124,53 @@ const Keno = () => {
 
   // mutate({ data: { ticketNumber: 5, gameNumber: 5, hits: 3, isReedeemed: 1, odds: 5, reedeemedAmount: 10, wagerAmount: 10 }})
 
+  const Callback = () => {
+    
+    return ( <p>Timer up close game and draw numbers.</p>)
+  }
+  
+  const renderer = ({
+    hours,
+    minutes,
+    seconds,
+    completed,
+  }: Timer) => {
+    if (completed) {
+      // Render a complete state
+      return <Callback />;
+    } else {
+      // Render a countdown
+      return (
+        <span>
+          {hours}:{minutes}:{seconds}
+        </span>
+      );
+    }
+  };
+
   return (
-    <div className="flex mt-20">
+    <div className="mt-20 flex">
       <div className="flex flex-col items-start">{rows}</div>
       <div className="flex flex-col">
+        <Countdown date={Date.now() + 240000} renderer={renderer} />
         <SelectedNumbers />
         <DrawnNumbers />
 
         <button
-          className="bg-green-700 h-fit text-white px-4 py-2 rounded-lg m-2 cursor-pointer"
+          className="m-2 h-fit cursor-pointer rounded-lg bg-green-700 px-4 py-2 text-white"
           // disabled={picked.length === 0}
           // onClick={() => drawNumbers()}
           onClick={() => {
-            console.log("place clicked")
+            console.log("place clicked");
             // updateBet({ ticketNumber: 10, data: {reedeemedAmount: 100000}})
-            deleteBet({ ticketNumber: 3})
+            deleteBet({ ticketNumber: 3 });
             // mutate({ data: { gameNumber: 6, hits: 3, isReedeemed: 0, odds: 5, reedeemedAmount: 10, wagerAmount: 10 }})
-          }
-          }
+          }}
         >
           Place bet
         </button>
         <button
-          className="bg-red-700 h-fit text-white px-4 py-2 rounded-lg m-2"
+          className="m-2 h-fit rounded-lg bg-red-700 px-4 py-2 text-white"
           onClick={() => setPicked([])}
         >
           Clear
