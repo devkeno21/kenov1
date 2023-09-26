@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useTimer } from "react-timer-hook";
 import { setMinutes, setSeconds } from "~/store/timerSlice";
 import type { RootState } from "~/store/store";
@@ -23,9 +23,7 @@ function GetNumberToShow() {
     const addNextNumber = () => {
       if (currentIndex !== undefined && currentIndex < numbersToShow.length) {
         setTimeout(() => {
-          setDrawnNumbers((prevDrawnNumbers) => {
-            return [...prevDrawnNumbers, numbersToShow[currentIndex]];
-          });
+          setDrawnNumbers((prevDrawnNumbers) => [...prevDrawnNumbers, numbersToShow[currentIndex]!]);
           setCurrentIndex(currentIndex + 1);
         }, animationDuration);
       }
