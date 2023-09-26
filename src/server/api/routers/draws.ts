@@ -1,6 +1,6 @@
 import z from "zod";
 import { drizzle } from "drizzle-orm/mysql2";
-import * as schema from "../../../../drizzle/schema";
+import * as schema from "~/db/schema"
 import mysql from "mysql2/promise";
 import { eq } from "drizzle-orm";
 import * as crypto from "crypto"
@@ -58,7 +58,7 @@ export const drawsRouter = createTRPCRouter({
       const result = await db
         .select()
         .from(schema.draws)
-        .where(eq(schema.draws.gameNumber, input.gameNumber));
+        .where(eq(schema.draws.game_number, input.gameNumber));
 
       return result;
     }),
@@ -69,7 +69,7 @@ export const drawsRouter = createTRPCRouter({
       const result = await db
         .update(schema.draws)
         .set(input.data)
-        .where(eq(schema.draws.gameNumber, input.gameNumber));
+        .where(eq(schema.draws.game_number, input.gameNumber));
       return result;
     }),
 
@@ -78,7 +78,7 @@ export const drawsRouter = createTRPCRouter({
     .query(async ({ input }) => {
       const result = await db
         .delete(schema.draws)
-        .where(eq(schema.draws.gameNumber, input.gameNumber));
+        .where(eq(schema.draws.game_number, input.gameNumber));
       return result;
     }),
 });

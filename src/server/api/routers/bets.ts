@@ -1,6 +1,6 @@
 import z from "zod";
 import { drizzle } from "drizzle-orm/mysql2";
-import * as schema from "../../../../drizzle/schema";
+import * as schema from "~/db/schema"
 import mysql from "mysql2/promise";
 import { eq } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
@@ -38,7 +38,7 @@ export const betsRouter = createTRPCRouter({
       const result = await db
         .select()
         .from(schema.bets)
-        .where(eq(schema.bets.ticketNumber, input.ticket_number));
+        .where(eq(schema.bets.ticket_number, input.ticket_number));
 
       return result;
     }),
@@ -49,7 +49,7 @@ export const betsRouter = createTRPCRouter({
       const result = await db
         .update(schema.bets)
         .set(input.data)
-        .where(eq(schema.bets.ticketNumber, input.ticketNumber));
+        .where(eq(schema.bets.ticket_number, input.ticketNumber));
 
       return result;
     }),
@@ -68,13 +68,13 @@ export const betsRouter = createTRPCRouter({
       const deletedRow = await db
         .select()
         .from(schema.bets)
-        .where(eq(schema.bets.ticketNumber, input.ticketNumber));
+        .where(eq(schema.bets.ticket_number, input.ticketNumber));
       const insertIntoCancelled = await db
         .insert(schema.cancelledBets)
         .values(deletedRow);
       const result = await db
         .delete(schema.bets)
-        .where(eq(schema.bets.ticketNumber, input.ticketNumber));
+        .where(eq(schema.bets.ticket_number, input.ticketNumber));
 
       // TODO: Add this row to cancelled bets
       return deletedRow;
