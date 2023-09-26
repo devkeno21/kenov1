@@ -21,6 +21,7 @@
     "@trpc/next": "^10.34.0",
     "@trpc/react-query": "^10.34.0",
     "@trpc/server": "^10.34.0",
+    "crypto": "^1.0.1",
     "dotenv": "^16.3.1",
     "drizzle-orm": "^0.28.6",
     "drizzle-zod": "^0.5.1",

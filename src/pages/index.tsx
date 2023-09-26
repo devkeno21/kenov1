@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useState } from "react";
 import { api } from "~/utils/api";
 import { useSelector } from "react-redux";
@@ -25,7 +25,6 @@ const Keno = () => {
 
   const { mutate: deleteBet, isLoading: isBetDeleting } =
     api.bets.deleteBetByTicketNumber.useMutation();
-
 
   const toggleNumber = (number: number) => {
     if (picked.includes(number)) {
@@ -111,13 +110,25 @@ const Keno = () => {
 
   // mutate({ data: { ticketNumber: 5, gameNumber: 5, hits: 3, isReedeemed: 1, odds: 5, reedeemedAmount: 10, wagerAmount: 10 }})
 
-
   const minuteState = useSelector((state: RootState) => state.timer.minutes);
-  const secState = useSelector((state: RootState) => state.timer.seconds)
+  const secState = useSelector((state: RootState) => state.timer.seconds);
+
   
+  
+  const [ minute, setMinute] = useState<string>()
+  const [ second, setSecond] = useState<string>()
+
+  if (typeof window !== "undefined") {
+    const minute = localStorage.getItem("minutes") == null ? "0" : localStorage.getItem("minutes")!
+    const seconds = localStorage.getItem("seconds") == null ? "0" : localStorage.getItem("seconds")!
+    // setMinute(minute)
+    // setSecond(seconds)
+  }
+  console.log(minute)
+
   return (
     <div className="mt-20 flex">
-      <div className="flex flex-col items-start">{rows}</div>
+      {/* <div className="flex flex-col items-start">{rows}</div> */}
       <div className="flex flex-col">
         {minuteState}:{secState}
         <SelectedNumbers />
