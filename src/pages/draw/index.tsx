@@ -313,13 +313,9 @@ function RightContent() {
       {currentContent === "content3" && (
         <>
           <div className="mb-auto mt-auto flex flex-col items-center justify-center text-center text-6xl">
-            <p className="text-white">Play</p>
-            <div className="flex gap-2">
-              <p className="text-white">The</p>
-              <p className="text-red-600">PICK 10</p>
-              <p className="text-white">Game</p>
+             
+              <p className="text-white">Play The <span className="text-red-600">PICK 10</span></p>
             </div>
-          </div>
           <div className="mb-auto mt-auto flex flex-col items-center justify-center text-center text-6xl">
             <span className="text-white">
               GET<span className="text-center text-red-600"> 10</span> numbers
@@ -327,7 +323,7 @@ function RightContent() {
             </span>
           </div>
           <div className="mb-auto mt-auto flex flex-col items-center justify-center text-center text-6xl">
-            <div className="flex gap-2">
+            <div className="flex gap-2 align-center justify-center flex-col">
               <p className="text-red-600">PICK 10</p>
               <p className="text-white">JACKPOT</p>
             </div>
