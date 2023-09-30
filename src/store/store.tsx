@@ -4,10 +4,12 @@ import {
     createStateSyncMiddleware,
     initMessageListener,
   } from "redux-state-sync";
+import drawSlice from './drawSlice';
 
 const store = configureStore({
   reducer: {
     timer: timerReducer,
+    draw: drawSlice
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(createStateSyncMiddleware()),
