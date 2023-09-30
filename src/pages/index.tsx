@@ -3,6 +3,7 @@ import { useState } from "react";
 import { api } from "~/utils/api";
 import { useSelector } from "react-redux";
 import { RootState } from "~/store/store";
+import { UserButton } from "@clerk/nextjs";
 
 type DrawNumbers = Record<number, string>;
 
@@ -44,7 +45,7 @@ const Keno = () => {
         {rowNumbers.map((number) => (
           <button
             className={`m-1 flex h-12 w-12 items-center justify-center rounded-full border border-black hover:bg-slate-600 hover:text-white ${
-              picked.includes(number) ? "bg-red-500 text-white" : "border-black"
+              picked.includes(number) ? "bg-red-500 text-white" : "border-white"
             }`}
             key={number}
             onClick={() => toggleNumber(number)}
@@ -62,7 +63,7 @@ const Keno = () => {
   }
 
   const SelectedNumbers = () => (
-    <div className="flex h-fit flex-col border p-2 shadow-md">
+    <div className="flex h-fit flex-col border p-2 shadow-md text-white">
       <span className="text-xl">Your selected numbers: </span>
       <div className="flex flex-row">
         {picked.map((num) => (
@@ -77,21 +78,7 @@ const Keno = () => {
     </div>
   );
 
-  const DrawnNumbers = () => (
-    <div className="flex h-fit flex-col border p-2 shadow-md">
-      <span className="text-xl">Drawn numbers: </span>
-      <div className="flex flex-row">
-        {drawnNumbers.map((num) => (
-          <div
-            key={num}
-            className="m-1 flex h-12 w-12 items-center justify-center rounded-full border border-black bg-slate-600 text-white"
-          >
-            {num}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+
 
   // console.log(bets)
   // if(!draws) return
@@ -127,12 +114,20 @@ const Keno = () => {
   console.log(minute)
 
   return (
-    <div className="mt-20 flex">
-      {/* <div className="flex flex-col items-start">{rows}</div> */}
-      <div className="flex flex-col">
+    <div className="bg-black min-h-screen">
+      <header className="flex min-w-full">
+        <div className="ml-auto mr-4 mt-4">
+				<UserButton appearance={{elements: {
+          userButtonOuterIdentifier : "text-white",
+          userButtonPopoverFooter : "hidden",
+        }}} showName={true} afterSignOutUrl="/"/>
+        </div>
+			</header>
+    <div className="flex">
+      <div className="flex flex-col items-start text-white pt-24">{rows}</div>
+      <div className="flex flex-col pt-24">
         {minuteState}:{secState}
         <SelectedNumbers />
-        <DrawnNumbers />
         <button
           className="m-2 h-fit cursor-pointer rounded-lg bg-green-700 px-4 py-2 text-white"
           // disabled={picked.length === 0}
@@ -152,8 +147,8 @@ const Keno = () => {
         >
           Clear
         </button>
-        {/* <div>{data?.greeting}</div> */}
       </div>
+    </div>
     </div>
   );
 };
