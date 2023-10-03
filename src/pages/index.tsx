@@ -3,7 +3,8 @@ import { useState } from "react";
 import { api } from "~/utils/api";
 import { useSelector } from "react-redux";
 import { RootState } from "~/store/store";
-import { UserButton } from "@clerk/nextjs";
+import { UserButton, useUser } from "@clerk/nextjs";
+import { useAuth } from "@clerk/nextjs";
 
 type DrawNumbers = Record<number, string>;
 
@@ -112,6 +113,15 @@ const Keno = () => {
     // setSecond(seconds)
   }
   console.log(minute)
+
+  const { isLoaded, isSignedIn, user } = useUser();
+ 
+  // In case the user signs out while on the page.
+  if (!isLoaded || !user) {
+    return null;
+  }
+
+  console.log(user.username)
 
   return (
     <div className="bg-black min-h-screen">

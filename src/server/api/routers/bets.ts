@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { auth } from "@clerk/nextjs";
 
 const connection = await mysql.createConnection({
   uri: process.env.DATABASE_URL,
@@ -16,9 +17,10 @@ const db = drizzle(connection, { schema, mode: "planetscale" });
 const insertBetsSchema = createInsertSchema(schema.bets);
 const selectBetsSchema = createSelectSchema(schema.bets);
 
+
 export const betsRouter = createTRPCRouter({
   placeBet: publicProcedure
-    .input(z.object({ data: insertBetsSchema }))
+    .input(z.object({ data: insertBetsSchema, cashier_id: z.string() }))
     .mutation(async ({ input }) => {
       const placeBet = await db.insert(schema.bets).values(input.data);
 

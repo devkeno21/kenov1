@@ -55,6 +55,7 @@ export const bets = mysqlTable(
   "bets",
   {
     ticket_number: serial("ticket_number").primaryKey(),
+    cashier_id: varchar("cashier_id", { length: 256 }),
     wager_amount: double("wager_amount"),
     odds: float("odds"),
     game_number: int("game_number"),
@@ -83,6 +84,7 @@ export const betsRelation = relations(bets, ({one}) => ({
 export const cancelledBets = mysqlTable("cancelledBets", {
   cancelled_id: serial("cancelled_id").primaryKey(),
   ticket_number: int("ticket_number"),
+  cashier_id: varchar("cashier_id", { length: 256 }),
   wager_amount: double("wager_amount"),
   odds: float("odds"),
   game_number: int("game_number"),

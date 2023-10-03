@@ -1,181 +1,20 @@
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+/* eslint-disable @next/next/no-img-element */
+import React from "react";
+import { useState, useEffect } from "react";
 import { useTimer } from "react-timer-hook";
-import { setMinutes, setSeconds } from "~/store/timerSlice";
-import type { RootState } from "~/store/store";
-import { api } from "~/utils/api";
-import Image from "next/image";
-import top from "../../../public/top.png";
-import bottom from "../../../public/bottom.png";
-import middle from "../../../public/middle.png";
+import { useDispatch, useSelector } from "react-redux";
 import ReactPlayer from "react-player";
 import { setStatus } from "~/store/drawSlice";
-
-function TransitionAnimation() {
-  const dispatch = useDispatch();
-  const [isClient, setIsClient] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(true);
-
-  useEffect(() => {
-    setIsClient(true);
-    setIsPlaying(true);
-  }, []);
-
-  const handleOnEnd = () => {
-    dispatch(setStatus("showing"));
-  };
-
-  return (
-    <div className="overflow-clip overflow-y-hidden">
-      {
-        <ReactPlayer
-          url={"/transitionAnimation.mp4"}
-          controls={false}
-          playing={true}
-          muted={true}
-          onEnded={handleOnEnd}
-          width="100vw"
-          height={"auto"}
-        />
-      }
-    </div>
-  );
-}
-
-function GetNumberToShow() {
-  const numbersToShow: number[] = [23, 74, 55, 10];
-  const animationDuration = 2000; // Adjust this as needed
-  const [currentIndex, setCurrentIndex] = useState<number>(0);
-
-  const [drawnNumbers, setDrawnNumbers] = useState<number[]>([]);
-
-  // Function to add the next number from numbersToShow to drawnNumbers with a delay
-
-  // Run the function when the component mounts to start the animation
-  useEffect(() => {
-    const addNextNumber = () => {
-      if (currentIndex !== undefined && currentIndex < numbersToShow.length) {
-        setTimeout(() => {
-          setDrawnNumbers((prevDrawnNumbers) => [
-            ...prevDrawnNumbers,
-            numbersToShow[currentIndex]!,
-          ]);
-          setCurrentIndex(currentIndex + 1);
-        }, animationDuration);
-      }
-    };
-
-    addNextNumber();
-  }, [currentIndex, numbersToShow]);
-
-  return { drawnNumbers, showNumber: numbersToShow[currentIndex] };
-}
-
-const Grid: React.FC = () => {
-  const numRows = 8;
-  const numCols = 10;
-
-  const generateGridData = () => {
-    const gridData = [];
-    let currentNumber = 1;
-
-    for (let i = 0; i < numRows; i++) {
-      const row = [];
-      for (let j = 0; j < numCols; j++) {
-        row.push(currentNumber);
-        currentNumber++;
-      }
-      gridData.push(row);
-    }
-
-    return gridData;
-  };
-
-  const gridData = generateGridData();
-
-  const { drawnNumbers } = GetNumberToShow();
-
-  return (
-    <div className="flex w-[74vw] flex-col">
-      <div className="flex gap-2">
-        <p className="text-4xl font-extrabold text-yellow-400">DRAW</p>
-        <p className="flex gap-2 text-4xl font-extrabold text-white"> 152 </p>
-      </div>
-      <div className="grid h-[85vh] grid-cols-10 gap-2">
-        {gridData.map((row, rowIndex) =>
-          row.map((cellValue, colIndex) => (
-            <div
-              key={`cell-${rowIndex}-${colIndex}`}
-              // className="bg-gray-200 p-2 text-center"
-              className={`m-1 flex min-h-[3rem] min-w-[4rem] flex-grow items-center justify-center  rounded-lg text-6xl shadow-sm 
-            ${
-              drawnNumbers.includes(cellValue)
-                ? "animate-zoom-in-out bg-yellow-500 text-black"
-                : "bg-gradient-to-t from-red-900 to-red-600 text-white text-opacity-20"
-            }`}
-            >
-              {cellValue}
-            </div>
-          )),
-        )}
-      </div>
-      <p className="text-4xl font-semibold text-red-300">KENO</p>
-    </div>
-  );
-};
-
-function NumberArray() {
-  const numbers = Array.from({ length: 80 }, (_, index) => index + 1);
-  const { drawnNumbers } = GetNumberToShow();
-
-  // Function to reset the animation when currentIndex reaches the end
-  // useEffect(() => {
-  //   if (currentIndex === numbersToShow.length) {
-  //     setCurrentIndex(0);
-  //     setDrawnNumbers([]);
-  //     addNextNumber();
-  //   }
-  // }, [currentIndex]);
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const rows: any[] = [];
-  for (let i = 0; i < numbers.length; i += 10) {
-    const rowNumbers = numbers.slice(i, i + 10);
-    const row = (
-      <div className="flex" key={i}>
-        {rowNumbers.map((number) => (
-          <div
-            // className={`m-1 flex h-12 w-12 items-center justify-center rounded-full border border-black hover:bg-slate-600 hover:text-white ${
-            //   picked.includes(number) ? "bg-red-500 text-white" : "border-black"
-            // }`}
-            className={`m-1 flex min-h-[3rem] min-w-[4rem] flex-grow items-center justify-center rounded-lg  text-6xl  shadow-sm 
-            ${
-              drawnNumbers.includes(number)
-                ? "animate-zoom-in-out bg-yellow-500 text-black"
-                : "bg-gradient-to-t from-red-900 to-red-600 text-white text-opacity-20"
-            }`}
-            key={number}
-          >
-            {number}
-          </div>
-        ))}
-      </div>
-    );
-    rows.push(row);
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-  return rows;
-}
+import type { RootState } from "~/store/store";
 
 function MyTimer({ expiryTimestamp }: { expiryTimestamp: Date }) {
-  const { mutate: createDraw, isLoading: isCreatingDraw } =
-    api.draws.createDraw.useMutation();
+  // const { mutate: createDraw, isLoading: isCreatingDraw } =
+  //   api.draws.createDraw.useMutation();
 
   const [minute, setMinute] = useState<number>(0);
   const [second, setSecond] = useState<number>(0);
-  const minuteState = useSelector((state: RootState) => state.timer.minutes);
-  const secState = useSelector((state: RootState) => state.timer.seconds);
+  // const minuteState = useSelector((state: RootState) => state.timer.minutes);
+  // const secState = useSelector((state: RootState) => state.timer.seconds);
   const dispatch = useDispatch();
 
   const handleChange = ({
@@ -191,9 +30,9 @@ function MyTimer({ expiryTimestamp }: { expiryTimestamp: Date }) {
     localStorage.setItem("seconds", second?.toString());
   };
 
-  const draw = () => {
-    createDraw({ data: {} });
-  };
+  // const draw = () => {
+  //   createDraw({ data: {} });
+  // };
 
   const {
     totalSeconds,
@@ -218,7 +57,11 @@ function MyTimer({ expiryTimestamp }: { expiryTimestamp: Date }) {
 
   return (
     <div>
-      <div className="text-9xl text-yellow-400">
+      <div
+        className={`count-down count-down-text shadow-text ${
+          seconds < 10 ? "blink-animation" : ""
+        }`}
+      >
         <span>
           {minutes < 10 ? "0" : ""}
           {minutes}
@@ -229,25 +72,11 @@ function MyTimer({ expiryTimestamp }: { expiryTimestamp: Date }) {
           {seconds}
         </span>
       </div>
-      {/* <p>{isRunning ? "Running" : "Not running"}</p>
-      <button onClick={start}>Start</button>
-      <button onClick={pause}>Pause</button>
-      <button onClick={resume}>Resume</button> */}
-      {/* <button
-        onClick={() => {
-          // Restarts to 5 minutes timer
-          const time = new Date();
-          time.setSeconds(time.getSeconds() + 5);
-          restart(time);
-        }}
-      >
-        Restart
-      </button> */}
     </div>
   );
 }
 
-function RightContent() {
+function RightContentWText() {
   const time = new Date();
   time.setSeconds(time.getSeconds() + 240);
 
@@ -280,326 +109,654 @@ function RightContent() {
     };
   }, [currentContent]);
 
-  console.log({ currentContent });
-
   return (
-    <div className="flex max-h-screen w-[30vw] flex-col items-center overflow-hidden bg-gradient-to-t from-black to-red-900">
-      <div>
-        <div className="flex justify-center gap-2">
-          <p className="text-5xl font-extrabold text-yellow-400">DRAW</p>
-          <p className="flex gap-2 text-5xl font-extrabold text-white"> 152 </p>
-        </div>
-        <MyTimer expiryTimestamp={time} />
+    <div id="right-container" className="black-red-gradient-bg">
+      <div id="right-top">
+        <span className="draw-text gold-black-text shadow-text">DRAW </span>{" "}
+        &nbsp; <span className="draw-number-text">6041</span>
       </div>
-      {currentContent === "content1" && (
-        <div className="mb-auto mt-auto flex flex-col items-center justify-center gap-20 text-center text-7xl">
-          <p className="text-white">
-            PICK <span className="text-red-600">1</span> TO{" "}
-            <span className="text-red-600">10</span>
-          </p>
-          <p className="text-white">NUMBERS</p>
-          <p className="text-white">
-            FROM <span className="text-red-600">80</span>
-          </p>
-        </div>
-      )}
-      {currentContent === "content2" && (
-        <div className="mb-auto mt-auto flex flex-col items-center justify-center text-center text-6xl">
-          <p className="text-red-600">20</p>
-          <p className="text-white">BALLS DRAWN FROM</p>
-          <p className="text-red-600">80</p>
-        </div>
-      )}
-      {currentContent === "content3" && (
-        <>
-          <div className="mb-auto mt-auto flex flex-col items-center justify-center text-center text-6xl">
-             
-              <p className="text-white">Play The <span className="text-red-600">PICK 10</span></p>
+      <div style={{ marginTop: "1.8rem", marginLeft: "1.8rem" }}>
+        <MyTimer expiryTimestamp={time} />
+        <div style={{ position: "absolute", top: "16.5rem" }}>
+          {currentContent === "content1" && (
+            <div id="promo-special-b-container">
+              <div className="squash">Play</div>
+              <div>
+                <span className="squash">The</span>{" "}
+                <span
+                  className="red-text"
+                  style={{ fontFamily: "good-times-rg", fontSize: "4rem" }}
+                >
+                  PICK 10
+                </span>{" "}
+                <span className="squash">Game</span>
+              </div>
+              <div className="squash" style={{ marginTop: "1rem" }}>
+                Get <span className="red-text">10</span> numbers
+              </div>
+              <div className="squash">
+                correct, <span style={{ marginLeft: "0.2rem" }}>and</span>
+              </div>
+              <div className="squash">win the</div>
+              <div style={{ marginTop: "1rem" }}>
+                <span
+                  className="red-text"
+                  style={{ fontFamily: "good-times-rg", fontSize: "4rem" }}
+                >
+                  PICK 10
+                </span>{" "}
+                <span className="squash">JACKPOT</span>
+              </div>
             </div>
-          <div className="mb-auto mt-auto flex flex-col items-center justify-center text-center text-6xl">
-            <span className="text-white">
-              GET<span className="text-center text-red-600"> 10</span> numbers
-              <br></br> correct, and<br></br> win the
-            </span>
-          </div>
-          <div className="mb-auto mt-auto flex flex-col items-center justify-center text-center text-6xl">
-            <div className="flex gap-2 align-center justify-center flex-col">
-              <p className="text-red-600">PICK 10</p>
-              <p className="text-white">JACKPOT</p>
+          )}
+          {currentContent === "content2" && (
+            <div id="promo-special-a-container">
+              <p>
+                <span className="red-text">20</span> balls
+              </p>
+              <p style={{ marginTop: "-3.8rem" }}>drawn</p>
+              <p style={{ marginTop: "-3.8rem" }}>
+                from <span className="red-text">80</span>
+              </p>
             </div>
-          </div>
-        </>
-      )}
-      {currentContent === "content4" && (
-        <div className="mb-auto mt-auto flex flex-col items-center justify-center text-center text-7xl">
-          <p className="text-red-600">PICK 3</p>
-          <p className="text-white">TO</p>
-          <p className="text-red-600">PICK 10</p>
-          <p className="text-white">games have</p>
-          <p className="text-yellow-500">MULTIPLE</p>
-          <p className="text-yellow-500">PAY LEVELS</p>
-          <p className="text-white">on other spots.</p>
+          )}
+
+          {currentContent === "content3" && (
+            <div id="promo-special-c-container">
+              <div className="red-text" style={{ fontFamily: "good-times-rg" }}>
+                pick 3
+              </div>
+              <div style={{ fontFamily: "good-times-rg" }}>TO</div>
+              <div className="red-text" style={{ fontFamily: "good-times-rg" }}>
+                pick 10
+              </div>
+              <div className="squash">games have</div>
+              <div style={{ fontFamily: "good-times-rg", color: "yellow" }}>
+                MULTIPLE
+              </div>
+              <div style={{ fontFamily: "good-times-rg", color: "yellow" }}>
+                PAY LEVELS
+              </div>
+              <div className="squash">on other spots.</div>
+            </div>
+          )}
+
+          {currentContent === "content4" && (
+            <div>
+              <div className="pick-text">Pick 10</div>
+              <div id="hit-win-table-container">
+                <div className="hit-win-table-head squash">
+                  <p>HITS</p>
+                  <p>WIN</p>
+                </div>
+                <div className="hit-win-table-value squash ">
+                  <p>10</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>5000</p>
+                </div>
+                <div className="hit-win-table-value squash ">
+                  <p>9</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>2500</p>
+                </div>
+                <div className="hit-win-table-value squash ">
+                  <p>8</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>400</p>
+                </div>
+                <div className="hit-win-table-value squash ">
+                  <p>7</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>40</p>
+                </div>
+                <div className="hit-win-table-value squash ">
+                  <p>6</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>12</p>
+                </div>
+                <div className="hit-win-table-value squash ">
+                  <p>5</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>4</p>
+                </div>
+                <div className="hit-win-table-value squash ">
+                  <p>4</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>2</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {currentContent === "content5" && (
+            <div>
+              <div className="pick-text">Pick 9</div>
+              <div id="hit-win-table-container">
+                <div className="hit-win-table-head squash">
+                  <p>HITS</p>
+                  <p>WIN</p>
+                </div>
+                <div className="hit-win-table-value squash">
+                  <p>9</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>4200</p>
+                </div>
+                <div className="hit-win-table-value squash">
+                  <p>8</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>1800</p>
+                </div>
+                <div className="hit-win-table-value squash">
+                  <p>7</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>120</p>
+                </div>
+                <div className="hit-win-table-value squash">
+                  <p>6</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>18</p>
+                </div>
+                <div className="hit-win-table-value squash">
+                  <p>5</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>6</p>
+                </div>
+                <div className="hit-win-table-value squash">
+                  <p>4</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>3</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {currentContent === "content6" && (
+            <div>
+              <div className="pick-text">Pick 8</div>
+              <div id="hit-win-table-container">
+                <div className="hit-win-table-head squash">
+                  <p>HITS</p>
+                  <p>WIN</p>
+                </div>
+                <div className="hit-win-table-value squash">
+                  <p>8</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>3,000</p>
+                </div>
+                <div className="hit-win-table-value squash">
+                  <p>7</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>600</p>
+                </div>
+                <div className="hit-win-table-value squash">
+                  <p>6</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>68</p>
+                </div>
+                <div className="hit-win-table-value squash">
+                  <p>5</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>8</p>
+                </div>
+                <div className="hit-win-table-value squash">
+                  <p>4</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>4</p>
+                </div>
+              </div>
+            </div>
+          )}
+          {currentContent === "content7" && (
+            <div>
+              <div className="pick-text">Pick 7</div>
+              <div id="hit-win-table-container">
+                <div className="hit-win-table-head squash">
+                  <p>HITS</p>
+                  <p>WIN</p>
+                </div>
+                <div className="hit-win-table-value squash">
+                  <p>7</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>2150</p>
+                </div>
+                <div className="hit-win-table-value squash">
+                  <p>6</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>120</p>
+                </div>
+                <div className="hit-win-table-value squash">
+                  <p>5</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>12</p>
+                </div>
+                <div className="hit-win-table-value squash">
+                  <p>4</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>6</p>
+                </div>
+                <div className="hit-win-table-value squash">
+                  <p>3</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>1</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {currentContent === "content8" && (
+            <div>
+              <div className="pick-text">Pick 6</div>
+              <div id="hit-win-table-container">
+                <div className="hit-win-table-head squash">
+                  <p>HITS</p>
+                  <p>WIN</p>
+                </div>
+                <div className="hit-win-table-value squash">
+                  <p>6</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>1800</p>
+                </div>
+                <div className="hit-win-table-value squash">
+                  <p>5</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>70</p>
+                </div>
+                <div className="hit-win-table-value squash">
+                  <p>4</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>10</p>
+                </div>
+                <div className="hit-win-table-value squash">
+                  <p>3</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>1</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {currentContent === "content9" && (
+            <div>
+              <div className="pick-text">Pick 5</div>
+              <div id="hit-win-table-container">
+                <div className="hit-win-table-head squash">
+                  <p>HITS</p>
+                  <p>WIN</p>
+                </div>
+                <div className="hit-win-table-value squash">
+                  <p>5</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>300</p>
+                </div>
+                <div className="hit-win-table-value squash">
+                  <p>4</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>15</p>
+                </div>
+                <div className="hit-win-table-value squash">
+                  <p>3</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>3</p>
+                </div>
+                <div className="hit-win-table-value squash">
+                  <p>2</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>1</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {currentContent === "content10" && (
+            <div>
+              <div className="pick-text">Pick 4</div>
+              <div id="hit-win-table-container">
+                <div className="hit-win-table-head squash">
+                  <p>HITS</p>
+                  <p>WIN</p>
+                </div>
+                <div className="hit-win-table-value squash">
+                  <p>4</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>100</p>
+                </div>
+                <div className="hit-win-table-value squash">
+                  <p>3</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>8</p>
+                </div>
+                <div className="hit-win-table-value squash">
+                  <p>2</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>1</p>
+                </div>
+              </div>
+            </div>
+          )}
+          {currentContent === "content11" && (
+            <div>
+              <div className="pick-text">Pick 3</div>
+              <div id="hit-win-table-container">
+                <div className="hit-win-table-head squash">
+                  <p>HITS</p>
+                  <p>WIN</p>
+                </div>
+                <div className="hit-win-table-value squash">
+                  <p>3</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>35</p>
+                </div>
+                <div className="hit-win-table-value squash">
+                  <p>2</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>3</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {currentContent === "content12" && (
+            <div>
+              <div className="pick-text">Pick 2</div>
+              <div id="hit-win-table-container">
+                <div className="hit-win-table-head squash">
+                  <p>HITS</p>
+                  <p>WIN</p>
+                </div>
+                <div className="hit-win-table-value squash">
+                  <p>2</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>15</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {currentContent === "content13" && (
+            <div>
+              <div className="pick-text">Pick 1</div>
+              <div id="hit-win-table-container">
+                <div className="hit-win-table-head squash">
+                  <p>HITS</p>
+                  <p>WIN</p>
+                </div>
+                <div className="hit-win-table-value squash">
+                  <p>1</p>
+                  <p style={{ width: "9rem", textAlign: "left" }}>3.8</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-      )}
-      {currentContent === "content5" && (
-        <div className="mb-auto mt-auto flex flex-col items-center justify-center text-center text-7xl">
-          <p className="text-red-600">PICK 10</p>
-          <div className="mt-4 grid grid-cols-2 gap-x-28 gap-y-2 text-5xl">
-            <div className="text-yellow-400">HITS</div>
-            <div className="text-yellow-400">WIN</div>
-            <div className="text-white">9</div>
-            <div className="text-white">2888</div>
-            <div className="text-white">8</div>
-            <div className="text-white">128</div>
-            <div className="text-white">7</div>
-            <div className="text-white">48</div>
-            <div className="text-white">6</div>
-            <div className="text-white">12</div>
-            <div className="text-white">5</div>
-            <div className="text-white">4</div>
-            <div className="text-white">4</div>
-            <div className="text-white">1</div>
-          </div>
-        </div>
-      )}
-      {currentContent === "content6" && (
-        <div className="mb-auto mt-auto flex flex-col items-center justify-center text-center text-7xl">
-          <p className="text-red-600">PICK 9</p>
-          <div className="mt-4 grid grid-cols-2 gap-x-28 gap-y-2 text-5xl">
-            <div className="text-yellow-400">HITS</div>
-            <div className="text-yellow-400">WIN</div>
-            <div className="text-white">8</div>
-            <div className="text-white">1888</div>
-            <div className="text-white">7</div>
-            <div className="text-white">88</div>
-            <div className="text-white">6</div>
-            <div className="text-white">20</div>
-            <div className="text-white">5</div>
-            <div className="text-white">4</div>
-            <div className="text-white">4</div>
-            <div className="text-white">2</div>
-          </div>
-        </div>
-      )}
-      {currentContent === "content7" && (
-        <div className="mb-auto mt-auto flex flex-col items-center justify-center text-center text-7xl">
-          <p className="text-red-600">PICK 8</p>
-          <div className="mt-4 grid grid-cols-2 gap-x-28 gap-y-2 text-5xl">
-            <div className="text-yellow-400">HITS</div>
-            <div className="text-yellow-400">WIN</div>
-            <div className="text-white">7</div>
-            <div className="text-white">628</div>
-            <div className="text-white">6</div>
-            <div className="text-white">58</div>
-            <div className="text-white">5</div>
-            <div className="text-white">8</div>
-            <div className="text-white">4</div>
-            <div className="text-white">2</div>
-          </div>
-        </div>
-      )}
-      {currentContent === "content8" && (
-        <div className="mb-auto mt-auto flex flex-col items-center justify-center text-center text-7xl">
-          <p className="text-red-600">PICK 7</p>
-          <div className="mt-4 grid grid-cols-2 gap-x-28 gap-y-2 text-5xl">
-            <div className="text-yellow-400">HITS</div>
-            <div className="text-yellow-400">WIN</div>
-            <div className="text-white">6</div>
-            <div className="text-white">90</div>
-            <div className="text-white">5</div>
-            <div className="text-white">10</div>
-            <div className="text-white">4</div>
-            <div className="text-white">3</div>
-            <div className="text-white">3</div>
-            <div className="text-white">1</div>
-          </div>
-        </div>
-      )}
-      {currentContent === "content9" && (
-        <div className="mb-auto mt-auto flex flex-col items-center justify-center text-center text-7xl">
-          <p className="text-red-600">PICK 6</p>
-          <div className="mt-4 grid grid-cols-2 gap-x-28 gap-y-2 text-5xl">
-            <div className="text-yellow-400">HITS</div>
-            <div className="text-yellow-400">WIN</div>
-            <div className="text-white">6</div>
-            <div className="text-white">1800</div>
-            <div className="text-white">5</div>
-            <div className="text-white">80</div>
-            <div className="text-white">4</div>
-            <div className="text-white">5</div>
-            <div className="text-white">3</div>
-            <div className="text-white">1</div>
-          </div>
-        </div>
-      )}
-      {currentContent === "content10" && (
-        <div className="mb-auto mt-auto flex flex-col items-center justify-center text-center text-7xl">
-          <p className="text-red-600">PICK 5</p>
-          <div className="mt-4 grid grid-cols-2 gap-x-28 gap-y-2 text-5xl">
-            <div className="text-yellow-400">HITS</div>
-            <div className="text-yellow-400">WIN</div>
-            <div className="text-white">5</div>
-            <div className="text-white">640</div>
-            <div className="text-white">4</div>
-            <div className="text-white">14</div>
-            <div className="text-white">3</div>
-            <div className="text-white">2</div>
-          </div>
-        </div>
-      )}
-      {currentContent === "content11" && (
-        <div className="mb-auto mt-auto flex flex-col items-center justify-center text-center text-7xl">
-          <p className="text-red-600">PICK 4</p>
-          <div className="mt-4 grid grid-cols-2 gap-x-28 gap-y-2 text-5xl">
-            <div className="text-yellow-400">HITS</div>
-            <div className="text-yellow-400">WIN</div>
-            <div className="text-white">4</div>
-            <div className="text-white">120</div>
-            <div className="text-white">3</div>
-            <div className="text-white">4</div>
-            <div className="text-white">2</div>
-            <div className="text-white">1</div>
-          </div>
-        </div>
-      )}
-      {currentContent === "content12" && (
-        <div className="mb-auto mt-auto flex flex-col items-center justify-center text-center text-7xl">
-          <p className="text-red-600">PICK 3</p>
-          <div className="mt-4 grid grid-cols-2 gap-x-28 gap-y-2 text-5xl">
-            <div className="text-yellow-400">HITS</div>
-            <div className="text-yellow-400">WIN</div>
-            <div className="text-white">3</div>
-            <div className="text-white">4</div>
-            <div className="text-white">2</div>
-            <div className="text-white">1</div>
-          </div>
-        </div>
-      )}
-      {currentContent === "content13" && (
-        <div className="mb-auto mt-auto flex flex-col items-center justify-center text-center text-7xl">
-          <p className="text-red-600">PICK 1</p>
-          <div className="mt-4 grid grid-cols-2 gap-x-28 gap-y-2 text-5xl">
-            <div className="text-yellow-400">HITS</div>
-            <div className="text-yellow-400">WIN</div>
-            <div className="text-white">1</div>
-            <div className="text-white">3</div>
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 }
 
-function DrawContent() {
-  const { showNumber } = GetNumberToShow();
+function GetNumberToShow() {
+  const numbersToShow: number[] = [
+    3, 50, 70, 20, 35, 42, 33, 21, 55, 1, 9, 45, 73, 79, 13, 58, 64, 80, 14, 19,
+  ];
+  const animationDuration = 3000; // Adjust this as needed
+  const [currentIndex, setCurrentIndex] = useState<number>(0);
+
+  const [drawnNumbers, setDrawnNumbers] = useState<number[]>([]);
+
+  // Function to add the next number from numbersToShow to drawnNumbers with a delay
+
+  // Run the function when the component mounts to start the animation
+  useEffect(() => {
+    const addNextNumber = () => {
+      if (currentIndex !== undefined && currentIndex < numbersToShow.length) {
+        setTimeout(() => {
+          setDrawnNumbers((prevDrawnNumbers) => [
+            ...prevDrawnNumbers,
+            numbersToShow[currentIndex]!,
+          ]);
+          setCurrentIndex(currentIndex + 1);
+        }, animationDuration);
+      }
+    };
+
+    addNextNumber();
+  }, [currentIndex, numbersToShow]);
+
+  return {
+    drawnNumbers,
+    showNumber: numbersToShow[currentIndex],
+    currentIndex,
+  };
+}
+
+function LeftContainer() {
+  const selectedNumbers = [
+    3, 50, 70, 20, 35, 42, 33, 21, 55, 1, 9, 45, 73, 79, 13, 58, 64, 80, 14, 19,
+  ];
+  const { showNumber, drawnNumbers, currentIndex } = GetNumberToShow();
   const [numberKey, setNumberKey] = useState(0);
-  const drawState = useSelector((state: RootState) => state.draw.status);
-  const dispatch = useDispatch();
+  const dispatch = useDispatch()
 
   useEffect(() => {
     if (showNumber === undefined) {
       // Stop the animation here (you may need to use a ref or a state variable)
       // Dispatch the action to set the status to "countdown"
-      dispatch(setStatus("countdown"));
+        dispatch(setStatus("countdown"));
+      return;
     } else {
       // Delay the increment of numberKey by 2 seconds
       const timeoutId = setTimeout(() => {
         setNumberKey((prevKey) => prevKey + 1);
-      }, 2000);
+      }, 2800);
 
       // Clean up the timeout on component unmount or when showNumber changes
       return () => clearTimeout(timeoutId);
     }
-  }, [showNumber, dispatch, setNumberKey]);
+  }, [showNumber, setNumberKey]);
 
   return (
-    <>
-      <Grid />
-      {drawState === "showing" && (
-        <>
-          <div className="flex w-[26vw]">
-            {/* <div className="min-h-screen">
-        <div className="flex gap-2">
-          <p className="text-4xl font-extrabold text-yellow-400">DRAW</p>
-          <p className="flex gap-2 text-4xl font-extrabold text-white"> 152 </p>
-        </div>
-        <div className="flex flex-col items-start">{NumberArray()}</div>
-        <p className="text-4xl text-red-300">KENO</p>
-      </div> */}
-            <div className="flex min-h-screen w-[33vw] flex-col">
-              <div
-                style={{
-                  backgroundImage: `url(${top.src})`,
-                  backgroundSize: "contain",
-                  backgroundRepeat: "no-repeat",
-                  backgroundPosition: "center",
-                  height: "25vh",
-                }}
-                className=""
-              />
-              <div
-                style={{
-                  backgroundImage: `url(${middle.src})`,
-                  backgroundSize: "cover",
-                  backgroundRepeat: "no-repeat",
-                  backgroundPosition: "center",
-                }}
-                className="flex h-[50vh] items-center  justify-center rounded-full border-black border-opacity-80"
+    <div id="left-container">
+      <div id="left-top">
+        <span className="draw-text gold-black-text shadow-text">DRAW </span>
+        &nbsp; <span className="draw-number-text">6012</span>
+        <span
+          className="heads white-special-gradient-bg"
+          style={{ marginTop: "1rem" }}
+        ></span>
+      </div>
+      <div id="left-center">
+        <div className="number-row">
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => {
+            return (
+              <span
+                key={num}
+                className={`${
+                  drawnNumbers.includes(num)
+                    ? "number-selected yellow-gradient-bg"
+                    : "number-unselected number-unselected-bg yellow-gradient-bg"
+                }`}
               >
-                <div
-                  key={numberKey}
-                  style={{
-                    background:
-                      "radial-gradient(circle at 100px 100px, #eae032, #000)",
-                  }}
-                  className={`flex h-[90%] w-[80%] animate-drop-zoom-in-out items-center justify-center rounded-full bg-yellow-400`}
-                >
-                  <p className="p-0 text-9xl">{showNumber}</p>
-                </div>
-              </div>
-              <div
-                style={{
-                  backgroundImage: `url(${bottom.src})`,
-                  backgroundSize: "contain",
-                  backgroundRepeat: "no-repeat",
-                  backgroundPosition: "center",
-                  height: "25vh",
-                }}
-                className="mt-auto"
-              />
-            </div>
-          </div>
-        </>
-      )}
-      {drawState === "countdown" && <RightContent />}
-
-      {/* Old way of trying to implement */}
-      {/* <div className="ml-auto border">
-        <div className="w-[22rem] h-[19rem] absolute rounded-full bg-yellow-400 top-[26%] right-[6%]">
-          <p className="absolute top-[25%] left-[30%] text-9xl text-black animate-zoom-in-out">{showNumber}</p>
+                <span className="number-text">{num}</span>
+              </span>
+            );
+          })}
         </div>
-        <div className="border absolute top-1/2 h-10 w-inherit"></div>
-        <Image
-          src="/NormalDraw.png"
-          width="400"
-          height={500}
-          alt="Draw bucket"
-          className="h-screen w-auto"
-        />
-      </div> */}
-    </>
-  );
-}
-
-export default function App() {
-  const drawState = useSelector((state: RootState) => state.draw.status);
-
-  return (
-    <div className="flex min-h-screen flex-row bg-red-700">
-      {(drawState === "showing" || drawState === "countdown") && (
-        <DrawContent />
-      )}
-      {drawState === "transition" && <TransitionAnimation />}
+        <div className="number-row">
+          {[11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map((num) => {
+            return (
+              <span
+                key={num}
+                className={`${
+                  drawnNumbers.includes(num)
+                    ? "number-selected yellow-gradient-bg"
+                    : "number-unselected number-unselected-bg yellow-gradient-bg"
+                }`}
+              >
+                <span className="number-text">{num}</span>
+              </span>
+            );
+          })}
+        </div>
+        <div className="number-row">
+          {[21, 22, 23, 24, 25, 26, 27, 28, 29, 30].map((num) => {
+            return (
+              <span
+                key={num}
+                className={`${
+                  drawnNumbers.includes(num)
+                    ? "number-selected yellow-gradient-bg"
+                    : "number-unselected number-unselected-bg yellow-gradient-bg"
+                }`}
+              >
+                <span className="number-text">{num}</span>
+              </span>
+            );
+          })}
+        </div>
+        <div className="number-row">
+          {[31, 32, 33, 34, 35, 36, 37, 38, 39, 40].map((num) => {
+            return (
+              <span
+                key={num}
+                className={`${
+                  drawnNumbers.includes(num)
+                    ? "number-selected yellow-gradient-bg"
+                    : "number-unselected number-unselected-bg yellow-gradient-bg"
+                }`}
+              >
+                <span className="number-text">{num}</span>
+              </span>
+            );
+          })}
+        </div>
+        <div className="number-row">
+          {[41, 42, 43, 44, 45, 46, 47, 48, 49, 50].map((num) => {
+            return (
+              <span
+                key={num}
+                className={`${
+                  drawnNumbers.includes(num)
+                    ? "number-selected orange-gradient-bg"
+                    : "number-unselected number-unselected-bg orange-gradient-bg"
+                }`}
+              >
+                <span className="number-text">{num}</span>
+              </span>
+            );
+          })}
+        </div>
+        <div className="number-row">
+          {[51, 52, 53, 5, 55, 56, 57, 58, 59, 60].map((num) => {
+            return (
+              <span
+                key={num}
+                className={`${
+                  drawnNumbers.includes(num)
+                    ? "number-selected orange-gradient-bg"
+                    : "number-unselected number-unselected-bg orange-gradient-bg"
+                }`}
+              >
+                <span className="number-text">{num}</span>
+              </span>
+            );
+          })}
+        </div>
+        <div className="number-row">
+          {[61, 62, 63, 64, 65, 66, 67, 68, 69, 70].map((num) => {
+            return (
+              <span
+                key={num}
+                className={`${
+                  drawnNumbers.includes(num)
+                    ? "number-selected orange-gradient-bg"
+                    : "number-unselected number-unselected-bg orange-gradient-bg"
+                }`}
+              >
+                <span className="number-text">{num}</span>
+              </span>
+            );
+          })}
+        </div>
+        <div className="number-row">
+          {[71, 72, 73, 74, 75, 76, 77, 78, 79, 80].map((num) => {
+            return (
+              <span
+                key={num}
+                className={`${
+                  drawnNumbers.includes(num)
+                    ? "number-selected orange-gradient-bg"
+                    : "number-unselected number-unselected-bg orange-gradient-bg"
+                }`}
+              >
+                <span className="number-text">{num}</span>
+              </span>
+            );
+          })}
+        </div>
+      </div>
+      <div id="left-bottom">
+        <span>
+          <img src="/images/keno.png" style={{ height: "4.3rem" }} alt="" />
+        </span>
+        <span className="heads white-special-gradient-bg"></span>
+      </div>
     </div>
   );
 }
+
+function OvalRight() {
+  const { showNumber, drawnNumbers, currentIndex } = GetNumberToShow();
+  const [numberKey, setNumberKey] = useState(0);
+
+  useEffect(() => {
+    if (showNumber === undefined) {
+      // Stop the animation here (you may need to use a ref or a state variable)
+      // Dispatch the action to set the status to "countdown"
+      //   dispatch(setStatus("countdown"));
+      return;
+    } else {
+      // Delay the increment of numberKey by 2 seconds
+      const timeoutId = setTimeout(() => {
+        setNumberKey((prevKey) => prevKey + 1);
+      }, 3000);
+
+      // Clean up the timeout on component unmount or when showNumber changes
+      return () => clearTimeout(timeoutId);
+    }
+  }, [showNumber, setNumberKey]);
+
+  return (
+    <div id="right-container">
+      <div id="draw-counter">
+        <span style={{ marginTop: "1rem" }}>{currentIndex}</span>
+        <span style={{ marginTop: "-2rem", marginLeft: "2.8rem" }}>/</span>
+        <span style={{ marginTop: "-1.5rem", marginLeft: "4.2rem" }}>20</span>
+      </div>
+      <img
+        className="pipe-image-transparent"
+        src="/images/pipet.png"
+        alt="text"
+      />
+      <img className="pipe-image" src="/images/pipe.png" alt="" />
+      <img
+        key={numberKey}
+        className="animate-draw-ball ball-image"
+        src={`/images/balls/${showNumber}.png`}
+        alt=""
+      />
+    </div>
+  );
+}
+
+function TransitionAnimation() {
+  const dispatch = useDispatch();
+
+  const handleOnEnd = () => {
+    dispatch(setStatus("showing"));
+  };
+
+  return (
+    <div className="overflow-clip overflow-y-hidden">
+      {
+        <ReactPlayer
+          url={"/shuffle.webm"}
+          controls={false}
+          playing={true}
+          muted={true}
+          onEnded={handleOnEnd}
+          width="100vw"
+          height={"auto"}
+        />
+      }
+    </div>
+  );
+}
+
+function DrawsPage() {
+  const drawState = useSelector((state: RootState) => state.draw.status);
+
+  return (
+    <div>
+      <div id="video-parent-container">
+        <div id="video-container">
+          <div id="main-container">
+            {(drawState==="showing" || drawState === "countdown") && <LeftContainer />}
+            {drawState === "countdown" && <RightContentWText />}
+            {drawState === "showing" && <OvalRight />}
+            {drawState === "transition" && <TransitionAnimation />}       
+          </div>
+          <video
+            src="/shuffle.webm"
+            preload="auto"
+            playsInline={true}
+            style={{ display: "none", pointerEvents: "none" }}
+          ></video>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default DrawsPage;
