@@ -59,7 +59,7 @@ function MyTimer({ expiryTimestamp }: { expiryTimestamp: Date }) {
     <div>
       <div
         className={`count-down count-down-text shadow-text ${
-          seconds < 10 ? "blink-animation" : ""
+          (seconds < 10 && minutes === 0) ? "blink-animation" : ""
         }`}
       >
         <span>
