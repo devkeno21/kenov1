@@ -235,10 +235,10 @@ const Keno = () => {
       <div className="flex text-xl" key={i}>
         {rowNumbers.map((number) => (
           <button
-            className={`hover:cursor-pointerer:text-white m-1 ml-4 mt-1 flex h-16 w-16 items-center justify-center rounded-full border bg-orange-700 p-2 text-center text-gray-100 hover:bg-green-900 ${
+            className={`hover:cursor-pointerer:text-white m-1 ml-4 mt-1 flex h-16 w-16 items-center justify-center rounded-full border p-2 text-center text-gray-100 hover:bg-green-900 ${
               picked.includes(number)
                 ? "bg-green-900 text-white"
-                : "border-white"
+                : "bg-orange-700"
             }`}
             key={number}
             onClick={() => toggleNumber(number)}
