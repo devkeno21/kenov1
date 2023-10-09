@@ -6,58 +6,183 @@ import { RootState } from "~/store/store";
 import { UserButton, useUser } from "@clerk/nextjs";
 import { useAuth } from "@clerk/nextjs";
 import Image from "next/image";
+import { getWinningsFromOdds } from "~/utils/odds";
+import { useReactToPrint } from "react-to-print";
+import Barcode from 'react-barcode';
 
 type DrawNumbers = Record<number, string>;
 
 type ModalProps = {
   numbers: number[];
+  setModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
 };
 type Batch = number[];
 type NumberHistory = Batch[];
+type Bets = {
+  numbersPicked: number[];
+  wagerAmount: number;
+  odds: number;
+}[];
 
-function BetModal({ numbers }: ModalProps) {
-  const [numberModal, setNumberModal] = useState<number[]>([]);
-  const [newNumbers, setNewNumbers] = useState<number[]>([]);
+const TicketContent = ({ bets }: { bets: Bets }) => {
+  return (
+    <div className="w-1/3">
+      <div className="flex flex-col">
+        <div className="ml-auto justify-items-end">
+          <p>0000001</p>
+          <p>61aw61</p>
+          <p>61aw61.cashier1</p>
+          <p>2023/08/15</p>
+        </div>
+        <div>
+          {bets.map((bet, index) => {
+            return(
+              <div key={index} className="flex flex-row justify-between items-center">
+                <div>
+                  <p className="font-medium">Win</p>
+                  <p>Keno 2023/08/16 09:22:25 #5995</p>
+                <p>{bet.numbersPicked.join(", ")} {bet.odds}</p>
+                
+                </div>
+                <div>
+                  <p className="font-bold">Br {bet.wagerAmount}</p>
+                </div>
+              </div> 
+            )
+          })}
+        </div>
+        <div className="w-fit flex justify-center items-center">
+        <Barcode value="00063247964923"/>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+function BetModal({ numbers, setModalVisible }: ModalProps) {
   const [numberHistory, setNumberHistory] = useState<number[][]>([]);
+  const [bets, setBets] = useState<Bets>([]);
+  const [isOptionsVisibile, setIsOptionsVisibile] = useState<boolean>(false);
+
+  const componentRef = React.useRef<HTMLDivElement | null>(null);
+
+  const handlePrint = useReactToPrint({
+    content: () => componentRef.current,
+  });
 
   // useEffect(() => {
-  //   // Append newly incoming numbers to the newNumbers state
-  //   setNewNumbers((prevNewNumbers) => [...prevNewNumbers, ...numbers]);
+  //   // When new numbers arrive, create a new instance of history
+  //   console.log("useEffec called");
+  //   if (numbers.length > 0) {
+  //     // Append newly incoming numbers as a new batch
+  //     setNumberHistory((prevHistory) => [...prevHistory, numbers]);
+  //   }
   // }, [numbers]);
 
-  console.log("Bet modal called");
-
   useEffect(() => {
-    // When new numbers arrive, create a new instance of history
-    console.log("useEffec called");
     if (numbers.length > 0) {
       // Append newly incoming numbers as a new batch
       setNumberHistory((prevHistory) => [...prevHistory, numbers]);
-    }
-  }, [numbers, setNumberHistory]);
-  // console.log(numberHistory)
 
-  // useEffect(() => {
-  //   setNumberModal((prevNumbers) => [...prevNumbers, ...numbers]);
-  // }, [numbers]);
+      // Create a new bet object for the batch and add it to the bets array
+      const newBet = {
+        numbersPicked: numbers,
+        wagerAmount: 10,
+        odds: getWinningsFromOdds(numbers.length, numbers.length)!,
+      }; // Customize wagerAmount and odds as needed
+      setBets((prevBets) => [...prevBets, newBet]);
+    }
+  }, [numbers]);
+
+  const deleteBatch = (batchIndex: number) => {
+    // Create copies of numberHistory and bets arrays
+    const updatedNumberHistory = [...numberHistory];
+    const updatedBets = [...bets];
+
+    // Remove the batch to be deleted from both arrays
+    updatedNumberHistory.splice(batchIndex, 1);
+    updatedBets.splice(batchIndex, 1);
+
+    // Update state with the modified arrays
+    setNumberHistory(updatedNumberHistory);
+    setBets(updatedBets);
+  };
+
+  const modifyBet = ({
+    batchIndex,
+    amount,
+    mode,
+  }: {
+    batchIndex: number;
+    amount: number;
+    mode: "increase" | "set" | "decrease";
+  }) => {
+    // Create copies of numberHistory and bets arrays
+    const updatedNumberHistory = [...numberHistory];
+    const updatedBets: Bets = [...bets];
+
+    if (updatedBets[batchIndex] && mode === "set") {
+      updatedBets[batchIndex] = {
+        ...updatedBets[batchIndex],
+        wagerAmount: amount,
+      } as Bets[number];
+    } else if (updatedBets[batchIndex] && mode === "increase") {
+      updatedBets[batchIndex] = {
+        ...updatedBets[batchIndex],
+        wagerAmount: (updatedBets[batchIndex]?.wagerAmount ?? 10) + amount,
+      } as Bets[number];
+    } else if (updatedBets[batchIndex] && mode === "decrease") {
+      updatedBets[batchIndex] = {
+        ...updatedBets[batchIndex],
+        wagerAmount: (updatedBets[batchIndex]?.wagerAmount ?? 10) - amount,
+      } as Bets[number];
+    }
+
+    setBets(updatedBets);
+  };
+
+  const modifyAllBets = ({ amount }: { amount: number }) => {
+    // Create copies of numberHistory and bets arrays
+    const updatedNumberHistory = [...numberHistory];
+    const updatedBets = [...bets];
+
+    updatedBets.forEach((bet) => {
+      bet.wagerAmount = bet.wagerAmount + amount;
+    });
+
+    setBets(updatedBets);
+  };
+
+  console.log({ numberHistory });
+  console.log({ bets });
 
   return (
-    <div className="flex w-3/12 flex-col bg-black px-1 pb-4 text-white">
+    <div className="mt-10 flex w-3/12 flex-col bg-black px-1 pb-4 text-white ml-auto">
+      <div>
+        {/* <button
+          onClick={handlePrint}
+          className="rounded bg-blue-500 px-4 py-2 text-white"
+        >
+          Print Ticket
+        </button> */}
+        <div style={{ display: "none" }}>
+          <div ref={componentRef}>
+            <TicketContent bets={bets} />
+          </div>
+        </div>
+      </div>
+
       <div className="mx-auto flex flex-row rounded border-2 border-amber-600 text-xs text-white">
         <div className="bg-amber-600 px-4">SINGLE</div>
         <div className="px-4">MULTIPLES</div>
       </div>
-      <div>
-        {/* {numberHistory.map((batch, batchIndex) => (
-        <div key={batchIndex}>
-          {batch.map((number, numberIndex) => (
-            <div key={numberIndex}>{number}</div>
-          ))}
-        </div>
-      ))} */}
-      </div>
+      <div></div>
       {numberHistory.map((batch, batchIndex) => (
-        <div key={batchIndex} className="flex flex-col">
+        <div
+          key={batchIndex}
+          className="flex flex-col"
+          onClick={() => setIsOptionsVisibile(true)}
+        >
           <div className="mt-4 flex w-full flex-col pr-4">
             <div className="max-h-[30rem] overflow-y-auto">
               <div className="mt-0.5 w-full rounded-sm bg-stone-400 bg-opacity-80 p-1">
@@ -70,68 +195,130 @@ function BetModal({ numbers }: ModalProps) {
                   <div className="flex w-10/12 flex-col px-1 text-gray-100">
                     <p className="text-xs">Win</p>
                     <div className="flex flex-row items-start gap-1">
-                      <div className="text-xs flex flex-row">
-                        {batch.map((number, numberIndex) => (
-                          <p key={numberIndex}>{number},</p>
-                        ))}
+                      <div className="flex flex-row text-xs">
+                        {batch.join(",")}
                       </div>
                       <span className="rounded bg-amber-500 px-0.5 text-xs text-black">
-                        100
+                        {bets[batchIndex]?.odds}
                       </span>
                     </div>
                     <p className="text-xs">2023/10/07 ID5975</p>
                     <div className="flex flex-row">
-                      <button className="rounded-l border border-gray-300 bg-stone-400 bg-opacity-80 px-2 font-bold text-gray-300 hover:opacity-90">
+                      <button
+                        onClick={() =>
+                          modifyBet({
+                            batchIndex: batchIndex,
+                            amount: 10,
+                            mode: "decrease",
+                          })
+                        }
+                        className="rounded-l border border-gray-300 bg-stone-400 bg-opacity-80 px-2 font-bold text-gray-300 hover:opacity-90"
+                      >
                         -{" "}
                       </button>
                       <input
                         className="w-48 border border-gray-300 text-right text-sm text-black outline-none"
                         type="number"
+                        defaultValue={bets[batchIndex]?.wagerAmount}
+                        value={bets[batchIndex]?.wagerAmount}
+                        onChange={(e) =>
+                          modifyBet({
+                            batchIndex: batchIndex,
+                            amount: e.currentTarget.valueAsNumber,
+                            mode: "set",
+                          })
+                        }
                       />
-                      <button className="rounded-r border border-gray-300 bg-stone-400 bg-opacity-80 px-2 font-bold text-gray-300 hover:opacity-90">
+                      <button
+                        onClick={() =>
+                          modifyBet({
+                            batchIndex: batchIndex,
+                            amount: 10,
+                            mode: "increase",
+                          })
+                        }
+                        className="rounded-r border border-gray-300 bg-stone-400 bg-opacity-80 px-2 font-bold text-gray-300 hover:opacity-90"
+                      >
                         +{" "}
                       </button>
                     </div>
-                  </div>
 
-                  {/* <div className="flex w-10/12 flex-col px-1 text-gray-100">
-                <p className="text-xs">Win</p>
-                <div className="flex flex-row items-start gap-1">
-                  <p className="text-xs">{numberModal.join(",")}</p>
-                  <span className="rounded bg-amber-500 px-0.5 text-xs text-black">
-                    100
-                  </span>
-                </div>
-                <p className="text-xs">2023/10/07 ID5975</p>
-                <div className="flex flex-row">
-                  <button className="rounded-l border border-gray-300 bg-stone-400 bg-opacity-80 px-2 font-bold text-gray-300 hover:opacity-90">
-                    -{" "}
-                  </button>
-                  <input
-                    className="w-48 border border-gray-300 text-right text-sm text-black outline-none"
-                    type="number"
-                  />
-                  <button className="rounded-r border border-gray-300 bg-stone-400 bg-opacity-80 px-2 font-bold text-gray-300 hover:opacity-90">
-                    +{" "}
-                  </button>
-                </div>
-              </div> */}
-                  <div className="flex w-1/12 flex-row justify-end p-0.5">
-                    <button className="text-white hover:opacity-80">
-                      <svg
-                        className="fill-current"
-                        width="14"
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 320 512"
+                    {isOptionsVisibile && (
+                      <div
+                        key={batchIndex}
+                        className="mt-2 flex w-full flex-row items-start gap-2"
                       >
-                        <path d="M310.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L160 210.7 54.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L114.7 256 9.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L160 301.3 265.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L205.3 256 310.6 150.6z"></path>
-                      </svg>
+                        <button
+                          onClick={() =>
+                            modifyBet({
+                              batchIndex: batchIndex,
+                              amount: 10,
+                              mode: "set",
+                            })
+                          }
+                          className="flex w-1/4 flex-col items-center rounded bg-orange-600 px-1 py-0.5 text-center text-white hover:opacity-90"
+                        >
+                          <p className="w-full text-left text-xs">Br</p>
+                          <p className="flex flex-row justify-center">10</p>
+                        </button>
+                        <button
+                          onClick={() =>
+                            modifyBet({
+                              batchIndex: batchIndex,
+                              amount: 20,
+                              mode: "set",
+                            })
+                          }
+                          className="flex w-1/4 flex-col items-center rounded bg-pink-600 px-1 py-0.5 text-center text-white hover:opacity-90"
+                        >
+                          <p className="w-full text-left text-xs">Br</p>
+                          <p className="flex flex-row justify-center">20</p>
+                        </button>
+                        <button
+                          onClick={() =>
+                            modifyBet({
+                              batchIndex: batchIndex,
+                              amount: 50,
+                              mode: "set",
+                            })
+                          }
+                          className="flex w-1/4 flex-col items-center rounded bg-purple-700 px-1 py-0.5 text-center text-white hover:opacity-90"
+                        >
+                          <p className="w-full text-left text-xs">Br</p>
+                          <p className="flex flex-row justify-center">50</p>
+                        </button>
+                        <button
+                          onClick={() =>
+                            modifyBet({
+                              batchIndex: batchIndex,
+                              amount: 100,
+                              mode: "set",
+                            })
+                          }
+                          className="flex w-1/4 flex-col items-center rounded bg-blue-400 px-1 py-0.5 text-center text-white hover:opacity-90"
+                        >
+                          <p className="w-full text-left text-xs">Br</p>
+                          <p className="flex flex-row justify-center">100</p>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex w-1/12 flex-row justify-end p-0.5">
+                    <button
+                      className="text-white hover:opacity-80"
+                      onClick={() => deleteBatch(batchIndex)}
+                    >
+                      <Image src="/close.svg" height={20} width={20} alt="" />
                     </button>
                   </div>
-                  <div>
-                    <div className="mx-auto flex w-8/12 flex-row justify-end">
-                      <p className="text-xs">To Win: Br 1,000.00</p>
-                    </div>
+                </div>
+                <div>
+                  <div className="mx-auto flex w-8/12 flex-row justify-end">
+                    <p className="text-sm font-bold text-black">
+                      To Win: Br{" "}
+                      {(bets[batchIndex]?.odds ?? 0) *
+                        (bets[batchIndex]?.wagerAmount ?? 0)}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -141,23 +328,36 @@ function BetModal({ numbers }: ModalProps) {
       ))}
 
       <div className="mt-2 flex w-full flex-row items-start gap-2">
-        <button className="flex w-1/4 flex-col items-center rounded bg-orange-600 px-1 py-0.5 text-center text-white hover:opacity-90">
+        <button
+          onClick={() => modifyAllBets({ amount: 10 })}
+          className="flex w-1/4 flex-col items-center rounded bg-orange-600 px-1 py-0.5 text-center text-white hover:opacity-90"
+        >
           <p className="w-full text-left text-xs">Br</p>
           <p className="flex flex-row justify-center">10</p>
         </button>
-        <button className="flex w-1/4 flex-col items-center rounded bg-pink-600 px-1 py-0.5 text-center text-white hover:opacity-90">
+        <button
+          onClick={() => modifyAllBets({ amount: 20 })}
+          className="flex w-1/4 flex-col items-center rounded bg-pink-600 px-1 py-0.5 text-center text-white hover:opacity-90"
+        >
           <p className="w-full text-left text-xs">Br</p>
           <p className="flex flex-row justify-center">20</p>
         </button>
-        <button className="flex w-1/4 flex-col items-center rounded bg-purple-700 px-1 py-0.5 text-center text-white hover:opacity-90">
+        <button
+          onClick={() => modifyAllBets({ amount: 50 })}
+          className="flex w-1/4 flex-col items-center rounded bg-purple-700 px-1 py-0.5 text-center text-white hover:opacity-90"
+        >
           <p className="w-full text-left text-xs">Br</p>
           <p className="flex flex-row justify-center">50</p>
         </button>
-        <button className="flex w-1/4 flex-col items-center rounded bg-blue-400 px-1 py-0.5 text-center text-white hover:opacity-90">
+        <button
+          onClick={() => modifyAllBets({ amount: 100 })}
+          className="flex w-1/4 flex-col items-center rounded bg-blue-400 px-1 py-0.5 text-center text-white hover:opacity-90"
+        >
           <p className="w-full text-left text-xs">Br</p>
           <p className="flex flex-row justify-center">100</p>
         </button>
       </div>
+
       <div className="mt-2 flex flex-col text-white">
         <p className="ml-6">STAKE</p>
         <div className="ml-6 flex flex-row">
@@ -174,20 +374,28 @@ function BetModal({ numbers }: ModalProps) {
         </div>
         <div className="mt-2 flex flex-row justify-between px-4">
           <p>TOTAL STAKE</p>
-          <p>Br 10.00</p>
+          <p>Br {bets.reduce((sum, bet) => sum + bet.wagerAmount, 0)}</p>
         </div>
         <div className="mt-1 flex flex-row justify-between px-4">
           <p className="text-lg">TOTAL TO WIN</p>
-          <p>Br 1,000.00</p>
+          <p>
+            Br {bets.reduce((sum, bet) => sum + bet.wagerAmount * bet.odds, 0)}
+          </p>
         </div>
         <div className="mt-4 flex flex-row gap-0.5 px-0.5">
-          <button className="w-3/12 bg-red-400 py-2 text-center text-white hover:bg-opacity-90">
+          <button
+            onClick={() => {
+              setNumberHistory([]);
+              setModalVisible(false);
+            }}
+            className="w-3/12 bg-red-400 py-2 text-center text-white hover:bg-opacity-90"
+          >
             <p>CLEAR</p>
           </button>
-          <button className="flex w-9/12 flex-row items-center justify-center gap-1 bg-green-600 px-2 py-2 text-white hover:opacity-90">
+          <button onClick={handlePrint} className="flex w-9/12 flex-row items-center justify-center gap-1 bg-green-600 px-2 py-2 text-white hover:opacity-90">
             <p>PLACE BET</p>
             <span className="rounded-sm bg-green-500 bg-opacity-50 p-2">
-              Br 10.00
+              Br {bets.reduce((sum, bet) => sum + bet.wagerAmount, 0)}
             </span>
           </button>
         </div>
@@ -380,7 +588,9 @@ const Keno = () => {
             )}
           </div>
         </div>
-        {modalVisible && <BetModal numbers={numbersToPass} />}
+        {modalVisible && (
+          <BetModal setModalVisible={setModalVisible} numbers={numbersToPass} />
+        )}
       </div>
     </div>
   );

@@ -47,20 +47,17 @@ export type Draw = typeof draws.$inferSelect; // return type when queried
 export type NewDraw = typeof draws.$inferInsert; // insert type
 
 // One to many relation between draws and bets.
-export const drawsRelation = relations(draws, ({many}) => ({
-  bets: many(bets)
-}))
+export const drawsRelation = relations(draws, ({ many }) => ({
+  bets: many(bets),
+}));
 
 export const bets = mysqlTable(
   "bets",
   {
-    ticket_number: serial("ticket_number").primaryKey(),
-    cashier_id: varchar("cashier_id", { length: 256 }),
+    bet_id: serial("bet_id").primaryKey(),
     wager_amount: double("wager_amount"),
-    odds: float("odds"),
     game_number: int("game_number"),
     hits: int("hits"),
-    is_reedeemed: boolean("is_reedeemed"),
     reedeemed_amount: double("reedeemed_amount"),
     timestamp: timestamp("timestamp").defaultNow(),
   },
@@ -73,23 +70,28 @@ export type Bet = typeof bets.$inferSelect; // return type when queried
 export type NewBet = typeof bets.$inferInsert; // insert type
 
 // One to many relation between draws and bets.
-export const betsRelation = relations(bets, ({one}) => ({
+export const betsDrawsRelation = relations(bets, ({ one }) => ({
   draw: one(draws, {
     fields: [bets.game_number],
-    references: [draws.game_number]
-  })
-}))
+    references: [draws.game_number],
+  }),
+}));
+
+// One to many relation between tickets and bets.
+export const betsTicketsRelations = relations(bets, ({ one }) => ({
+	author: one(tickets, {
+		fields: [bets.bet_id],
+		references: [tickets.ticket_number],
+	}),
+}));
 
 
 export const cancelledBets = mysqlTable("cancelledBets", {
   cancelled_id: serial("cancelled_id").primaryKey(),
-  ticket_number: int("ticket_number"),
-  cashier_id: varchar("cashier_id", { length: 256 }),
+  bet_id: int("bet_id"),
   wager_amount: double("wager_amount"),
-  odds: float("odds"),
   game_number: int("game_number"),
   hits: int("hits"),
-  is_reedeemed: boolean("is_reedeemed"),
   reedeemed_amount: double("reedeemed_amount"),
   timestamp: timestamp("timestamp").defaultNow(),
 });
@@ -98,10 +100,26 @@ export type CancelledBet = typeof cancelledBets.$inferSelect; // return type whe
 export type NewCancelledBet = typeof cancelledBets.$inferInsert; // insert type
 
 // One to One relations between bets and cancelled bets => cancelledBetsRelation
-
 export const cancelledBetsRelation = relations(bets, ({ one }) => ({
   cancelledBets: one(cancelledBets, {
-    fields: [bets.ticket_number],
-    references: [cancelledBets.ticket_number],
+    fields: [bets.bet_id],
+    references: [cancelledBets.bet_id],
   }),
+}));
+
+export const tickets = mysqlTable("tickets", {
+  ticket_number: serial("ticket_number").primaryKey(),
+  cashier_id: varchar("cashier_id", { length: 256 }),
+  total_wager: double("total_wager"),
+  total_redeemed: double("total_redeemed"),
+  timestamp: timestamp("timestamp").defaultNow(),
+});
+
+export type Tickets = typeof tickets.$inferSelect; // return type when queried
+export type NewTickets = typeof tickets.$inferInsert; // insert type
+
+
+// One to many relation between tickets and bets.
+export const ticketsRelation = relations(tickets, ({ many }) => ({
+  bets: many(bets),
 }));
