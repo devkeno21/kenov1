@@ -191,9 +191,9 @@ function MyTimer({ expiryTimestamp }: { expiryTimestamp: Date }) {
     localStorage.setItem("seconds", second?.toString());
   };
 
-  const draw = () => {
-    createDraw({ data: {} });
-  };
+  // const draw = () => {
+  //   createDraw({ data: {} });
+  // };
 
   const {
     totalSeconds,
