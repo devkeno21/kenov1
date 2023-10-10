@@ -35,7 +35,7 @@ export const draws = mysqlTable(
   "draws",
   {
     game_number: serial("game_number").primaryKey(),
-    numbers_drawn: json("numbers_drawn"),
+    numbers_drawn: json("numbers_drawn").notNull(),
     timestamp: timestamp("timestamp").defaultNow(),
   },
   (draws) => ({
@@ -55,8 +55,10 @@ export const bets = mysqlTable(
   "bets",
   {
     bet_id: serial("bet_id").primaryKey(),
-    wager_amount: double("wager_amount"),
-    game_number: int("game_number"),
+    ticket_number: int("ticket_number").notNull(),
+    wager_amount: double("wager_amount").notNull(),
+    game_number: int("game_number").notNull(),
+    numbers_picked: int("numbers_picked").notNull(),
     hits: int("hits"),
     reedeemed_amount: double("reedeemed_amount"),
     timestamp: timestamp("timestamp").defaultNow(),
@@ -79,18 +81,19 @@ export const betsDrawsRelation = relations(bets, ({ one }) => ({
 
 // One to many relation between tickets and bets.
 export const betsTicketsRelations = relations(bets, ({ one }) => ({
-	author: one(tickets, {
-		fields: [bets.bet_id],
-		references: [tickets.ticket_number],
-	}),
+  ticket: one(tickets, {
+    fields: [bets.ticket_number],
+    references: [tickets.ticket_number],
+  }),
 }));
-
 
 export const cancelledBets = mysqlTable("cancelledBets", {
   cancelled_id: serial("cancelled_id").primaryKey(),
-  bet_id: int("bet_id"),
-  wager_amount: double("wager_amount"),
-  game_number: int("game_number"),
+  bet_id: int("bet_id").unique(),
+  ticket_number: int("ticket_number").notNull(),
+  wager_amount: double("wager_amount").notNull(),
+  game_number: int("game_number").notNull(),
+  numbers_picked: int("numbers_picked").notNull(),
   hits: int("hits"),
   reedeemed_amount: double("reedeemed_amount"),
   timestamp: timestamp("timestamp").defaultNow(),
@@ -109,15 +112,14 @@ export const cancelledBetsRelation = relations(bets, ({ one }) => ({
 
 export const tickets = mysqlTable("tickets", {
   ticket_number: serial("ticket_number").primaryKey(),
-  cashier_id: varchar("cashier_id", { length: 256 }),
-  total_wager: double("total_wager"),
+  cashier_id: varchar("cashier_id", { length: 256 }).notNull(),
+  total_wager: double("total_wager").notNull(),
   total_redeemed: double("total_redeemed"),
   timestamp: timestamp("timestamp").defaultNow(),
 });
 
 export type Tickets = typeof tickets.$inferSelect; // return type when queried
 export type NewTickets = typeof tickets.$inferInsert; // insert type
-
 
 // One to many relation between tickets and bets.
 export const ticketsRelation = relations(tickets, ({ many }) => ({

@@ -8,12 +8,15 @@ import { useAuth } from "@clerk/nextjs";
 import Image from "next/image";
 import { getWinningsFromOdds } from "~/utils/odds";
 import { useReactToPrint } from "react-to-print";
-import Barcode from 'react-barcode';
+import Barcode from "react-barcode";
+import toast from "react-hot-toast";
+
 
 type DrawNumbers = Record<number, string>;
 
 type ModalProps = {
   numbers: number[];
+  cashier: string;
   setModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
 };
 type Batch = number[];
@@ -36,30 +39,34 @@ const TicketContent = ({ bets }: { bets: Bets }) => {
         </div>
         <div>
           {bets.map((bet, index) => {
-            return(
-              <div key={index} className="flex flex-row justify-between items-center">
+            return (
+              <div
+                key={index}
+                className="flex flex-row items-center justify-between"
+              >
                 <div>
                   <p className="font-medium">Win</p>
                   <p>Keno 2023/08/16 09:22:25 #5995</p>
-                <p>{bet.numbersPicked.join(", ")} {bet.odds}</p>
-                
+                  <p>
+                    {bet.numbersPicked.join(", ")} {bet.odds}
+                  </p>
                 </div>
                 <div>
                   <p className="font-bold">Br {bet.wagerAmount}</p>
                 </div>
-              </div> 
-            )
+              </div>
+            );
           })}
         </div>
-        <div className="w-fit flex justify-center items-center">
-        <Barcode value="00063247964923"/>
+        <div className="flex w-fit items-center justify-center">
+          <Barcode value="00063247964923" />
         </div>
       </div>
     </div>
   );
 };
 
-function BetModal({ numbers, setModalVisible }: ModalProps) {
+function BetModal({ numbers, setModalVisible, cashier }: ModalProps) {
   const [numberHistory, setNumberHistory] = useState<number[][]>([]);
   const [bets, setBets] = useState<Bets>([]);
   const [isOptionsVisibile, setIsOptionsVisibile] = useState<boolean>(false);
@@ -70,14 +77,21 @@ function BetModal({ numbers, setModalVisible }: ModalProps) {
     content: () => componentRef.current,
   });
 
-  // useEffect(() => {
-  //   // When new numbers arrive, create a new instance of history
-  //   console.log("useEffec called");
-  //   if (numbers.length > 0) {
-  //     // Append newly incoming numbers as a new batch
-  //     setNumberHistory((prevHistory) => [...prevHistory, numbers]);
-  //   }
-  // }, [numbers]);
+  const { mutate: placeBet, isLoading: isPosting } =
+    api.bets.placeBet.useMutation({
+      onSuccess: () => {
+        toast.success("Bet Placed Successfully");
+        handlePrint();
+      },
+      onError: (e) => {
+        const errorMessage = e.data?.zodError?.fieldErrors.content;
+        if (errorMessage?.[0]) {
+          toast.error(errorMessage[0]);
+        } else {
+          toast.error("Failed to post: Please try again later.");
+        }
+      },
+    });
 
   useEffect(() => {
     if (numbers.length > 0) {
@@ -157,7 +171,7 @@ function BetModal({ numbers, setModalVisible }: ModalProps) {
   console.log({ bets });
 
   return (
-    <div className="mt-10 flex w-3/12 flex-col bg-black px-1 pb-4 text-white ml-auto">
+    <div className="ml-auto mt-10 flex w-3/12 flex-col bg-black px-1 pb-4 text-white">
       <div>
         {/* <button
           onClick={handlePrint}
@@ -219,7 +233,6 @@ function BetModal({ numbers, setModalVisible }: ModalProps) {
                       <input
                         className="w-48 border border-gray-300 text-right text-sm text-black outline-none"
                         type="number"
-                        defaultValue={bets[batchIndex]?.wagerAmount}
                         value={bets[batchIndex]?.wagerAmount}
                         onChange={(e) =>
                           modifyBet({
@@ -392,7 +405,12 @@ function BetModal({ numbers, setModalVisible }: ModalProps) {
           >
             <p>CLEAR</p>
           </button>
-          <button onClick={handlePrint} className="flex w-9/12 flex-row items-center justify-center gap-1 bg-green-600 px-2 py-2 text-white hover:opacity-90">
+          <button
+            onClick={() => {
+              placeBet({ data: bets, cashier_id: cashier, total_redeemed: 0 });
+            }}
+            className="flex w-9/12 flex-row items-center justify-center gap-1 bg-green-600 px-2 py-2 text-white hover:opacity-90"
+          >
             <p>PLACE BET</p>
             <span className="rounded-sm bg-green-500 bg-opacity-50 p-2">
               Br {bets.reduce((sum, bet) => sum + bet.wagerAmount, 0)}
@@ -403,6 +421,7 @@ function BetModal({ numbers, setModalVisible }: ModalProps) {
     </div>
   );
 }
+
 
 const Keno = () => {
   const [picked, setPicked] = useState<number[]>([]);
@@ -463,22 +482,6 @@ const Keno = () => {
     }
   }
 
-  // const SelectedNumbers = () => (
-  //   <div className="flex h-fit flex-col border p-2 text-white shadow-md">
-  //     <span className="text-xl">Your selected numbers: </span>
-  //     <div className="flex flex-row">
-  //       {picked.map((num) => (
-  //         <div
-  //           key={num}
-  //           className="m-1 flex h-12 w-12 items-center justify-center rounded-full border border-black bg-slate-600 text-white"
-  //         >
-  //           {num}
-  //         </div>
-  //       ))}
-  //     </div>
-  //   </div>
-  // );
-
   // console.log(bets)
   // if(!draws) return
 
@@ -519,22 +522,21 @@ const Keno = () => {
   const { isLoaded, isSignedIn, user } = useUser();
 
   // In case the user signs out while on the page.
-  if (!isLoaded || !user) {
+  if (!isLoaded || !user || typeof user.username !== "string") {
     return null;
   }
 
   console.log(user.username);
 
   const updateNumbers = ({ picked }: { picked: number[] }) => {
-    // Replace this with logic to fetch or generate new numbers
-    // Example new numbers
-    console.log("update called");
     setNumbersToPass(picked);
   };
 
   return (
     <div className="min-h-screen bg-black">
       <header className="flex min-w-full">
+        <div className="ml-auto text-white">
+        </div>
         <div className="ml-auto mr-4 mt-4">
           <UserButton
             appearance={{
@@ -552,7 +554,6 @@ const Keno = () => {
         <div className="flex flex-col items-start pt-24 text-white">{rows}</div>
         <div className="flex max-w-xs flex-col pt-24">
           {minuteState}:{secState}
-          {/* <SelectedNumbers /> */}
           <button
             className="m-2 h-fit w-fit rounded-lg bg-red-700 px-4 py-2 text-white"
             onClick={() => setPicked([])}
@@ -589,7 +590,11 @@ const Keno = () => {
           </div>
         </div>
         {modalVisible && (
-          <BetModal setModalVisible={setModalVisible} numbers={numbersToPass} />
+          <BetModal
+            setModalVisible={setModalVisible}
+            numbers={numbersToPass}
+            cashier={user.username}
+          />
         )}
       </div>
     </div>

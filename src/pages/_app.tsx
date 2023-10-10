@@ -6,6 +6,7 @@ import "~/styles/globals.css";
 import { Provider } from "react-redux";
 import store from "~/store/store";
 import { ClerkProvider, SignIn } from '@clerk/nextjs'
+import { Toaster } from "react-hot-toast";
 
 const MyApp: AppType = ({ Component, pageProps }) => {
   return (
@@ -13,6 +14,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
     <ClerkProvider>
 
       <Provider store={store}>
+      <Toaster position="top-right"/>
         <Component {...pageProps} />
       </Provider>
       </ClerkProvider>
