@@ -4,18 +4,41 @@ import { useState, useEffect } from "react";
 import { useTimer } from "react-timer-hook";
 import { useDispatch, useSelector } from "react-redux";
 import ReactPlayer from "react-player";
-import { setStatus } from "~/store/drawSlice";
+import { setGameNumber, setStatus } from "~/store/drawSlice";
 import type { RootState } from "~/store/store";
+import { api } from "~/utils/api";
+import { toast } from "react-hot-toast";
 
-function MyTimer({ expiryTimestamp }: { expiryTimestamp: Date }) {
-  // const { mutate: createDraw, isLoading: isCreatingDraw } =
-  //   api.draws.createDraw.useMutation();
+function MyTimer({ expiryTimestamp, timeStamp2 }: { expiryTimestamp: Date, timeStamp2: Date }) {
+  const dispatch = useDispatch();
+  const gameNumber = useSelector((state: RootState) => state.draw.gameNumber);
+  const [ updatedGameNumber, setupdatedGameNumber] = useState<number>(gameNumber);
+  const { mutate: createDraw, isLoading: isCreatingDraw,  } =
+    api.draws.createDraw.useMutation({
+      onSuccess: (res) => {
+        console.log(res)
+        toast.success("Draw done Successfully");
+      },
+      onError: (e) => {
+        const errorMessage = e.data?.zodError?.fieldErrors.content;
+        if (errorMessage?.[0]) {
+          toast.error(errorMessage[0]);
+        } else {
+          toast.error("Failed to draw: Please try again later.");
+        }
+      },
+      retry: 10
+    });
+
+    const { mutate: updateDraw, isLoading: isUpdatingDraw,  } = api.draws.updatePrematureDraw.useMutation({
+      retry: 10
+    })
+
 
   const [minute, setMinute] = useState<number>(0);
   const [second, setSecond] = useState<number>(0);
   // const minuteState = useSelector((state: RootState) => state.timer.minutes);
   // const secState = useSelector((state: RootState) => state.timer.seconds);
-  const dispatch = useDispatch();
 
   const handleChange = ({
     minutes,
@@ -47,7 +70,15 @@ function MyTimer({ expiryTimestamp }: { expiryTimestamp: Date }) {
     restart,
   } = useTimer({
     expiryTimestamp,
-    onExpire: () => dispatch(setStatus("transition")),
+    onExpire: () => {
+      updateDraw()
+      dispatch(setStatus("transition"))},
+  });
+
+  const { seconds: seconds2, minutes: minutes2 } = useTimer({expiryTimestamp: timeStamp2, onExpire: () => 
+    {
+      createDraw({ data: { } })
+    }
   });
 
   useEffect(() => {
@@ -59,7 +90,7 @@ function MyTimer({ expiryTimestamp }: { expiryTimestamp: Date }) {
     <div>
       <div
         className={`count-down count-down-text shadow-text ${
-          (seconds < 10 && minutes === 0) ? "blink-animation" : ""
+          seconds < 10 && minutes === 0 ? "blink-animation" : ""
         }`}
       >
         <span>
@@ -79,6 +110,10 @@ function MyTimer({ expiryTimestamp }: { expiryTimestamp: Date }) {
 function RightContentWText() {
   const time = new Date();
   time.setSeconds(time.getSeconds() + 240);
+
+  const timestamp2: Date = new Date();
+  timestamp2.setSeconds(timestamp2.getSeconds() + 210);
+
 
   const [currentContent, setCurrentContent] = useState<string>("content1");
   const contentArray: string[] = [
@@ -116,7 +151,7 @@ function RightContentWText() {
         &nbsp; <span className="draw-number-text">6041</span>
       </div>
       <div style={{ marginTop: "1.8rem", marginLeft: "1.8rem" }}>
-        <MyTimer expiryTimestamp={time} />
+        <MyTimer expiryTimestamp={time} timeStamp2={timestamp2}/>
         <div style={{ position: "absolute", top: "16.5rem" }}>
           {currentContent === "content1" && (
             <div id="promo-special-b-container">
@@ -497,13 +532,13 @@ function LeftContainer() {
   ];
   const { showNumber, drawnNumbers, currentIndex } = GetNumberToShow();
   const [numberKey, setNumberKey] = useState(0);
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
 
   useEffect(() => {
     if (showNumber === undefined) {
       // Stop the animation here (you may need to use a ref or a state variable)
       // Dispatch the action to set the status to "countdown"
-        dispatch(setStatus("countdown"));
+      dispatch(setStatus("countdown"));
       return;
     } else {
       // Delay the increment of numberKey by 2 seconds
@@ -742,10 +777,12 @@ function DrawsPage() {
       <div id="video-parent-container">
         <div id="video-container">
           <div id="main-container">
-            {(drawState==="showing" || drawState === "countdown") && <LeftContainer />}
+            {(drawState === "showing" || drawState === "countdown") && (
+              <LeftContainer />
+            )}
             {drawState === "countdown" && <RightContentWText />}
             {drawState === "showing" && <OvalRight />}
-            {drawState === "transition" && <TransitionAnimation />}       
+            {drawState === "transition" && <TransitionAnimation />}
           </div>
           <video
             src="/shuffle.webm"

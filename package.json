@@ -14,6 +14,8 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^4.25.1",
+    "@mantine/core": "^7.1.2",
+    "@mantine/hooks": "^7.1.2",
     "@planetscale/database": "^1.11.0",
     "@reduxjs/toolkit": "^1.9.5",
     "@t3-oss/env-nextjs": "^0.6.0",

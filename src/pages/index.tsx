@@ -10,7 +10,8 @@ import { getWinningsFromOdds } from "~/utils/odds";
 import { useReactToPrint } from "react-to-print";
 import Barcode from "react-barcode";
 import toast from "react-hot-toast";
-
+import { Button, Loader, LoadingOverlay, Modal, TextInput } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
 
 type DrawNumbers = Record<number, string>;
 
@@ -70,14 +71,14 @@ function BetModal({ numbers, setModalVisible, cashier }: ModalProps) {
   const [numberHistory, setNumberHistory] = useState<number[][]>([]);
   const [bets, setBets] = useState<Bets>([]);
   const [isOptionsVisibile, setIsOptionsVisibile] = useState<boolean>(false);
-
   const componentRef = React.useRef<HTMLDivElement | null>(null);
+  const [lastGameNo, setLastGameNo ] = useState<number>();
 
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
   });
 
-  const { mutate: placeBet, isLoading: isPosting } =
+  const { mutate: placeBet, isLoading: isBetPlacing } =
     api.bets.placeBet.useMutation({
       onSuccess: () => {
         toast.success("Bet Placed Successfully");
@@ -88,7 +89,7 @@ function BetModal({ numbers, setModalVisible, cashier }: ModalProps) {
         if (errorMessage?.[0]) {
           toast.error(errorMessage[0]);
         } else {
-          toast.error("Failed to post: Please try again later.");
+          toast.error("Failed to place bet: Please try again later.");
         }
       },
     });
@@ -167,8 +168,23 @@ function BetModal({ numbers, setModalVisible, cashier }: ModalProps) {
     setBets(updatedBets);
   };
 
-  console.log({ numberHistory });
-  console.log({ bets });
+  const combinedNumbers: number[] = bets.reduce<number[]>((accumulator, bet) => {
+    return accumulator.concat( bet.numbersPicked)
+  }, [])
+
+  const totalWagerAmount = bets.reduce((sum, bet) => sum + bet.wagerAmount, 0)
+
+  const { data: lastDrawID, isLoading: isLastDrawLoading, refetch } = api.draws.getLastDraw.useQuery()
+
+  useEffect(() => {
+    if(lastDrawID) {
+      setLastGameNo(lastDrawID?.gameNumber + 1)
+    }
+  }, [lastDrawID?.gameNumber, isLastDrawLoading, lastDrawID])
+
+  if (isLastDrawLoading || typeof lastGameNo !== "number") {
+    return <Loader color="white"/>
+  }
 
   return (
     <div className="ml-auto mt-10 flex w-3/12 flex-col bg-black px-1 pb-4 text-white">
@@ -216,7 +232,7 @@ function BetModal({ numbers, setModalVisible, cashier }: ModalProps) {
                         {bets[batchIndex]?.odds}
                       </span>
                     </div>
-                    <p className="text-xs">2023/10/07 ID5975</p>
+                    <p className="text-xs">2023/10/07 ID{lastGameNo}</p>
                     <div className="flex flex-row">
                       <button
                         onClick={() =>
@@ -405,9 +421,11 @@ function BetModal({ numbers, setModalVisible, cashier }: ModalProps) {
           >
             <p>CLEAR</p>
           </button>
-          <button
+          <Button
+          size="md"
+          loading={isBetPlacing}
             onClick={() => {
-              placeBet({ data: bets, cashier_id: cashier, total_redeemed: 0 });
+              placeBet({ data: bets, cashier_id: cashier, totalWager: totalWagerAmount, picked_list: combinedNumbers, gameNumber: lastGameNo });
             }}
             className="flex w-9/12 flex-row items-center justify-center gap-1 bg-green-600 px-2 py-2 text-white hover:opacity-90"
           >
@@ -415,13 +433,157 @@ function BetModal({ numbers, setModalVisible, cashier }: ModalProps) {
             <span className="rounded-sm bg-green-500 bg-opacity-50 p-2">
               Br {bets.reduce((sum, bet) => sum + bet.wagerAmount, 0)}
             </span>
-          </button>
+          </Button>
         </div>
       </div>
     </div>
   );
 }
 
+const ReedemAndCancelModal = () => {
+  const [opened, { open, close }] = useDisclosure(false);
+  const [ mode, setMode ] = useState<'reedem' | 'cancel'>('reedem');
+  const [ticketNumber, setTicketNumber] = useState<string>("");
+
+  return (
+    <>
+      <Modal
+        className="bg-white text-black"
+        opened={opened}
+        onClose={close}
+        title={`${mode === "reedem" ? "Reedem" : "Cancel"}`}
+        size="75%"
+        centered
+      >
+        <div className="flex w-full flex-row rounded-b-md bg-white p-6">
+          <div className="flex w-1/3 flex-col border-r px-6">
+            <p className="text-orange-500">Enter betslip code or scan</p>
+            <div className="flex flex-row items-center gap-3">
+              <input
+                type="text"
+                className="w-full rounded border border-gray-400 px-4 py-1.5 outline-none focus:shadow-lg"
+                value={ticketNumber}
+              />
+            </div>
+            <div className="mt-4 flex w-full flex-wrap">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
+                <div key={n} className="w-1/3 p-3">
+                  <button
+                    onClick={() => setTicketNumber((prevNum) => prevNum + n)}
+                    className="h-10 w-full rounded-md bg-orange-500 py-2 text-center text-white hover:shadow-md"
+                  >
+                    {n}
+                  </button>
+                </div>
+              ))}
+              <div className="w-1/3 p-3"></div>
+              <div className="w-1/3 p-3">
+                <button className="h-10 w-full rounded-md bg-orange-500 py-2 text-center text-white hover:shadow-md">
+                  0
+                </button>
+              </div>
+              <div className="w-1/3 p-3">
+                <button className="flex h-10 w-full flex-col items-center justify-center rounded-md bg-orange-500 py-2 text-center text-white hover:shadow-md">
+                  <Image height={20} width={20} alt="" src="/backspace.svg" />
+                </button>
+              </div>
+            </div>
+            <div className="mt-2 flex flex-row justify-between px-4">
+              <button
+                onClick={() => setTicketNumber("")}
+                className="h-10 rounded bg-gray-300 px-6 text-gray-800 hover:bg-gray-400"
+              >
+                Clear
+              </button>
+              <button className="h-10 rounded bg-orange-500 px-6 text-white hover:shadow-md">
+                Enter
+              </button>
+            </div>
+            <div></div>
+          </div>
+          {mode==="reedem" && (<div className="w-2/3 p-4">
+            <div>
+              <div>
+                <div>
+                  <div className="h-auto max-h-64 w-full overflow-y-auto p-2">
+                    <table className="w-full border border-gray-400 text-sm text-gray-700">
+                      <thead>
+                        <tr className="bg-gray-100 font-semibold">
+                          <td className="p-2">No</td>
+                          <td className="p-2">Game</td>
+                          <td className="p-2">Picks</td>
+                          <td className="p-2">Game Id</td>
+                          <td className="p-2">Stake</td>
+                          <td className="p-2">Win</td>
+                          <td className="p-2">Status</td>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border-t border-t-gray-400">
+                          <td className="p-3">1</td>
+                          <td className="p-3"> Keno </td>
+                          <td className="p-3">18,21,36,70,72</td>
+                          <td className="p-3">6140</td>
+                          <td className="p-3">20</td>
+                          <td className="p-3">0</td>
+                          <td className="p-3">LOST</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="mt-3 flex flex-row justify-between gap-2 rounded-md bg-gray-100 p-1.5 text-sm text-gray-700">
+                    <div className="flex flex-col">
+                      <p className="font-semibold">Gross Stake</p>
+                      <p>20</p>
+                    </div>
+                    <div className="flex flex-col">
+                      <p className="font-semibold">Net Stake</p>
+                      <p>20</p>
+                    </div>
+                    <div className="flex flex-col">
+                      <p className="font-semibold">Gross Winning</p>
+                      <p>0</p>
+                    </div>
+                    <div className="flex flex-col">
+                      <p className="font-semibold">Net Winning</p>
+                      <p>0</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div className="flex flex-row items-end gap-4">
+                <button className="mt-4 flex h-12 flex-row items-center gap-2 rounded bg-green-600 px-8 py-2 font-semibold text-white hover:bg-green-700">
+                  Redeem{" "}
+                </button>
+                <p className="text-lg font-semibold text-gray-700">
+                  Not a winning ticket!
+                </p>
+              </div>
+            </div>
+          </div>)}
+          {mode==="cancel" && (<div className="w-2/3 p-4">
+            <p>Loading</p>
+          </div>)}
+        </div>
+      </Modal>
+
+      <Button onClick={() => {
+        setMode("cancel")
+        open()
+        }} className="rounded-md bg-yellow-500 text-white mr-2 text-lg" size="md">
+        Cancel
+      </Button>
+      <Button onClick={() => {
+        setMode("reedem")
+        open()
+        }} className="rounded-md bg-green-600 text-white text-lg" size="md">
+        Reedem
+      </Button>
+    </>
+  );
+};
 
 const Keno = () => {
   const [picked, setPicked] = useState<number[]>([]);
@@ -535,7 +697,8 @@ const Keno = () => {
   return (
     <div className="min-h-screen bg-black">
       <header className="flex min-w-full">
-        <div className="ml-auto text-white">
+        <div className="ml-auto mt-4 text-white">
+          <ReedemAndCancelModal />
         </div>
         <div className="ml-auto mr-4 mt-4">
           <UserButton

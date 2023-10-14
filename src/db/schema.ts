@@ -35,8 +35,9 @@ export const draws = mysqlTable(
   "draws",
   {
     game_number: serial("game_number").primaryKey(),
-    numbers_drawn: json("numbers_drawn").notNull(),
+    numbers_drawn: json("numbers_drawn"),
     timestamp: timestamp("timestamp").defaultNow(),
+    premature: boolean("premature").notNull().default(true)
   },
   (draws) => ({
     gameIdx: index("game_time_idx").on(draws.timestamp),
@@ -59,6 +60,7 @@ export const bets = mysqlTable(
     wager_amount: double("wager_amount").notNull(),
     game_number: int("game_number").notNull(),
     numbers_picked: int("numbers_picked").notNull(),
+    picked_list: json("picked_list").notNull(),
     hits: int("hits"),
     reedeemed_amount: double("reedeemed_amount"),
     timestamp: timestamp("timestamp").defaultNow(),
@@ -94,6 +96,7 @@ export const cancelledBets = mysqlTable("cancelledBets", {
   wager_amount: double("wager_amount").notNull(),
   game_number: int("game_number").notNull(),
   numbers_picked: int("numbers_picked").notNull(),
+  picked_list: json("picked_list").notNull(),
   hits: int("hits"),
   reedeemed_amount: double("reedeemed_amount"),
   timestamp: timestamp("timestamp").defaultNow(),
@@ -113,6 +116,7 @@ export const cancelledBetsRelation = relations(bets, ({ one }) => ({
 export const tickets = mysqlTable("tickets", {
   ticket_number: serial("ticket_number").primaryKey(),
   cashier_id: varchar("cashier_id", { length: 256 }).notNull(),
+  picked_list: json("picked_list").notNull(),
   total_wager: double("total_wager").notNull(),
   total_redeemed: double("total_redeemed"),
   timestamp: timestamp("timestamp").defaultNow(),

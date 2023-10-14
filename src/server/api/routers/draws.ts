@@ -1,12 +1,15 @@
 import z from "zod";
-import { drizzle } from "drizzle-orm/mysql2";
+import { MySqlQueryResult, drizzle } from "drizzle-orm/mysql2";
 import * as schema from "~/db/schema"
 import mysql from "mysql2/promise";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import * as crypto from "crypto"
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { createInsertSchema } from "drizzle-zod";
+
+type LastInsertType = Array<LastInsertID>
+type LastInsertID = Record<"insertedTicketNum" | "gameNumber", number>
 
 
 const connection = await mysql.createConnection({
@@ -18,7 +21,8 @@ const DrawSchema = createInsertSchema(schema.draws);
 const db = drizzle(connection, { schema, mode: "planetscale" });
 
 // RNG function
-function getRNG(count=20, minValue=1, maxValue=80):number[]{
+function getRNG(count=20, minValue=1, maxValue=80):number[]
+{
   const selected = [];
   // let drawnNumbers: {[key: number]: number} = {}
   const rangeSize = Math.abs(maxValue - minValue) + 1
@@ -40,10 +44,23 @@ export const drawsRouter = createTRPCRouter({
   createDraw: publicProcedure
     .input(z.object({ data: DrawSchema }))
     .mutation(async ({ input }) => {
-      const drawnNumbers = getRNG()
-      const data = {...input.data, numbersDrawn: JSON.stringify(drawnNumbers)}
+      const drawnNumbers =getRNG()
+      const data = {...input.data, numbers_drawn: JSON.stringify(drawnNumbers)}
       return await db.insert(schema.draws).values(data);
     }),
+
+  getLastDraw: publicProcedure.query(async () => {
+    const gameNumber: MySqlQueryResult = await db.execute(sql.raw(`SELECT MAX(game_number) AS gameNumber FROM draws WHERE premature = false`));
+    const gameNumberArray: LastInsertType = gameNumber[0] as LastInsertType;
+    const gameNumberID: LastInsertID = gameNumberArray[0]!;
+
+    return gameNumberID
+  }),
+
+  updatePrematureDraw: publicProcedure.mutation(async () => {
+    const updated = await db.update(schema.draws).set({ premature: false }).where(eq(schema.draws.premature, true));
+    return updated
+  }),
 
   getAllDraws: publicProcedure.query(async () => {
     const result = await db.query.draws.findMany({
