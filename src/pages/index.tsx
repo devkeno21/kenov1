@@ -10,7 +10,13 @@ import { getWinningsFromOdds } from "~/utils/odds";
 import { useReactToPrint } from "react-to-print";
 import Barcode from "react-barcode";
 import toast from "react-hot-toast";
-import { Button, Loader, LoadingOverlay, Modal, TextInput } from "@mantine/core";
+import {
+  Button,
+  Loader,
+  LoadingOverlay,
+  Modal,
+  TextInput,
+} from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 
 type DrawNumbers = Record<number, string>;
@@ -72,7 +78,7 @@ function BetModal({ numbers, setModalVisible, cashier }: ModalProps) {
   const [bets, setBets] = useState<Bets>([]);
   const [isOptionsVisibile, setIsOptionsVisibile] = useState<boolean>(false);
   const componentRef = React.useRef<HTMLDivElement | null>(null);
-  const [lastGameNo, setLastGameNo ] = useState<number>();
+  const [lastGameNo, setLastGameNo] = useState<number>();
 
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
@@ -168,22 +174,29 @@ function BetModal({ numbers, setModalVisible, cashier }: ModalProps) {
     setBets(updatedBets);
   };
 
-  const combinedNumbers: number[] = bets.reduce<number[]>((accumulator, bet) => {
-    return accumulator.concat( bet.numbersPicked)
-  }, [])
+  const combinedNumbers: number[] = bets.reduce<number[]>(
+    (accumulator, bet) => {
+      return accumulator.concat(bet.numbersPicked);
+    },
+    [],
+  );
 
-  const totalWagerAmount = bets.reduce((sum, bet) => sum + bet.wagerAmount, 0)
+  const totalWagerAmount = bets.reduce((sum, bet) => sum + bet.wagerAmount, 0);
 
-  const { data: lastDrawID, isLoading: isLastDrawLoading, refetch } = api.draws.getLastDraw.useQuery()
+  const {
+    data: lastDrawID,
+    isLoading: isLastDrawLoading,
+    refetch,
+  } = api.draws.getLastDraw.useQuery();
 
   useEffect(() => {
-    if(lastDrawID) {
-      setLastGameNo(lastDrawID?.gameNumber + 1)
+    if (lastDrawID) {
+      setLastGameNo(lastDrawID?.gameNumber + 1);
     }
-  }, [lastDrawID?.gameNumber, isLastDrawLoading, lastDrawID])
+  }, [lastDrawID?.gameNumber, isLastDrawLoading, lastDrawID]);
 
   if (isLastDrawLoading || typeof lastGameNo !== "number") {
-    return <Loader color="white"/>
+    return <Loader color="white" />;
   }
 
   return (
@@ -422,10 +435,16 @@ function BetModal({ numbers, setModalVisible, cashier }: ModalProps) {
             <p>CLEAR</p>
           </button>
           <Button
-          size="md"
-          loading={isBetPlacing}
+            size="md"
+            loading={isBetPlacing}
             onClick={() => {
-              placeBet({ data: bets, cashier_id: cashier, totalWager: totalWagerAmount, picked_list: combinedNumbers, gameNumber: lastGameNo });
+              placeBet({
+                data: bets,
+                cashier_id: cashier,
+                totalWager: totalWagerAmount,
+                picked_list: combinedNumbers,
+                gameNumber: lastGameNo,
+              });
             }}
             className="flex w-9/12 flex-row items-center justify-center gap-1 bg-green-600 px-2 py-2 text-white hover:opacity-90"
           >
@@ -442,18 +461,43 @@ function BetModal({ numbers, setModalVisible, cashier }: ModalProps) {
 
 const ReedemAndCancelModal = () => {
   const [opened, { open, close }] = useDisclosure(false);
-  const [ mode, setMode ] = useState<'reedem' | 'cancel'>('reedem');
+  const [mode, setMode] = useState<"reedem" | "cancel">("reedem");
   const [ticketNumber, setTicketNumber] = useState<string>("");
+  const [getTicket, setGetTicket] = useState<boolean>(false);
+  const [cancelTicket, setCancelTicket] = useState<boolean>(false);
+  const {
+    data: ticketInfo,
+    isFetching: ticketInfoLoading,
+    isError: isTicketInfoError,
+    isSuccess: isTicketInfoSuccess,
+  } = api.tickets.getTicketByTicketNumber.useQuery(
+    { ticket_num: parseInt(ticketNumber) },
+    { enabled: getTicket },
+  );
+
+  const { mutate: reedemTicket, isLoading: reedemTicketLoading } =
+    api.tickets.redeemTicket.useMutation();
+
+  useEffect(() => {
+    if (isTicketInfoError || isTicketInfoSuccess) {
+      console.log(ticketInfo);
+      setGetTicket(false);
+    }
+  }, [isTicketInfoError, isTicketInfoSuccess, ticketInfo]);
 
   return (
     <>
       <Modal
         className="bg-white text-black"
         opened={opened}
-        onClose={close}
+        onClose={() => {
+          setTicketNumber("");
+          close();
+        }}
         title={`${mode === "reedem" ? "Reedem" : "Cancel"}`}
         size="75%"
         centered
+        closeOnClickOutside
       >
         <div className="flex w-full flex-row rounded-b-md bg-white p-6">
           <div className="flex w-1/3 flex-col border-r px-6">
@@ -461,6 +505,7 @@ const ReedemAndCancelModal = () => {
             <div className="flex flex-row items-center gap-3">
               <input
                 type="text"
+                onChange={(e) => setTicketNumber(e.target.value)}
                 className="w-full rounded border border-gray-400 px-4 py-1.5 outline-none focus:shadow-lg"
                 value={ticketNumber}
               />
@@ -478,7 +523,10 @@ const ReedemAndCancelModal = () => {
               ))}
               <div className="w-1/3 p-3"></div>
               <div className="w-1/3 p-3">
-                <button className="h-10 w-full rounded-md bg-orange-500 py-2 text-center text-white hover:shadow-md">
+                <button
+                  onClick={() => setTicketNumber((prevNum) => prevNum + 0)}
+                  className="h-10 w-full rounded-md bg-orange-500 py-2 text-center text-white hover:shadow-md"
+                >
                   0
                 </button>
               </div>
@@ -495,90 +543,143 @@ const ReedemAndCancelModal = () => {
               >
                 Clear
               </button>
-              <button className="h-10 rounded bg-orange-500 px-6 text-white hover:shadow-md">
+              <Button
+                loading={ticketInfoLoading}
+                onClick={() => setGetTicket(true)}
+                className="h-10 rounded bg-orange-500 px-6 text-white hover:shadow-md"
+              >
                 Enter
-              </button>
+              </Button>
             </div>
             <div></div>
           </div>
-          {mode==="reedem" && (<div className="w-2/3 p-4">
-            <div>
+          {ticketInfoLoading && (
+            <div className="w-2/3 p-4">
+              <Loader color="black" />
+            </div>
+          )}
+          {ticketInfo && isTicketInfoSuccess && (
+            <div className="w-2/3 p-4">
               <div>
                 <div>
-                  <div className="h-auto max-h-64 w-full overflow-y-auto p-2">
-                    <table className="w-full border border-gray-400 text-sm text-gray-700">
-                      <thead>
-                        <tr className="bg-gray-100 font-semibold">
-                          <td className="p-2">No</td>
-                          <td className="p-2">Game</td>
-                          <td className="p-2">Picks</td>
-                          <td className="p-2">Game Id</td>
-                          <td className="p-2">Stake</td>
-                          <td className="p-2">Win</td>
-                          <td className="p-2">Status</td>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr className="border-t border-t-gray-400">
-                          <td className="p-3">1</td>
-                          <td className="p-3"> Keno </td>
-                          <td className="p-3">18,21,36,70,72</td>
-                          <td className="p-3">6140</td>
-                          <td className="p-3">20</td>
-                          <td className="p-3">0</td>
-                          <td className="p-3">LOST</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                  <div className="mt-3 flex flex-row justify-between gap-2 rounded-md bg-gray-100 p-1.5 text-sm text-gray-700">
-                    <div className="flex flex-col">
-                      <p className="font-semibold">Gross Stake</p>
-                      <p>20</p>
+                  <div>
+                    <div className="h-auto max-h-64 w-full overflow-y-auto p-2">
+                      <table className="w-full border border-gray-400 text-sm text-gray-700">
+                        <thead>
+                          <tr className="bg-gray-100 font-semibold">
+                            <td className="p-2">No</td>
+                            <td className="p-2">Game</td>
+                            <td className="p-2">Picks</td>
+                            <td className="p-2">Game Id</td>
+                            <td className="p-2">Stake</td>
+                            <td className="p-2">Win</td>
+                            <td className="p-2">Status</td>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {ticketInfo?.map((ticket, index) => {
+                            return (
+                              <tr
+                                key={index}
+                                className="border-t border-t-gray-400"
+                              >
+                                <td className="p-3">{index + 1}</td>
+                                <td className="p-3"> Keno </td>
+                                <td className="p-3">
+                                  {typeof ticket.picked_list === "string"
+                                    ? (
+                                        JSON.parse(
+                                          ticket.picked_list,
+                                        ) as string[]
+                                      ).join(", ")
+                                    : ""}
+                                </td>
+                                <td className="p-3">{ticket.game_number}</td>
+                                <td className="p-3">{ticket.wager_amount}</td>
+                                <td className="p-3">
+                                  {ticket.reedeemed_amount}
+                                </td>
+                                <td className="p-3">LOST</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
                     </div>
-                    <div className="flex flex-col">
-                      <p className="font-semibold">Net Stake</p>
-                      <p>20</p>
-                    </div>
-                    <div className="flex flex-col">
-                      <p className="font-semibold">Gross Winning</p>
-                      <p>0</p>
-                    </div>
-                    <div className="flex flex-col">
-                      <p className="font-semibold">Net Winning</p>
-                      <p>0</p>
+                    <div className="mt-3 flex flex-row justify-between gap-2 rounded-md bg-gray-100 p-1.5 text-sm text-gray-700">
+                      <div className="flex flex-col">
+                        <p className="font-semibold">Gross Stake</p>
+                        <p>
+                          {ticketInfo?.reduce(
+                            (sum, ticket) => sum + ticket.wager_amount,
+                            0,
+                          )}
+                        </p>
+                      </div>
+                      <div className="flex flex-col">
+                        <p className="font-semibold">Net Stake</p>
+                        <p>
+                          {ticketInfo?.reduce(
+                            (sum, ticket) => sum + ticket.wager_amount,
+                            0,
+                          )}
+                        </p>
+                      </div>
+                      <div className="flex flex-col">
+                        <p className="font-semibold">Gross Winning</p>
+                        <p>0</p>
+                      </div>
+                      <div className="flex flex-col">
+                        <p className="font-semibold">Net Winning</p>
+                        <p>0</p>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
+              {mode === "reedem" && (
+                <div>
+                  <div className="flex flex-row items-end gap-4">
+                    <Button className="mt-4 flex h-12 flex-row items-center gap-2 rounded bg-green-600 px-8 py-2 font-semibold text-white hover:bg-green-700">
+                      Redeem{" "}
+                    </Button>
+                    <p className="text-lg font-semibold text-gray-700">
+                      Not a winning ticket!
+                    </p>
+                  </div>
+                </div>
+              )}
+              {mode === "cancel" && ticketInfo[0]?.hits !== null && (
+                <Button className="mt-4 flex h-12 flex-row items-center gap-2 rounded bg-green-600 px-8 py-2 font-semibold text-white hover:bg-green-700">
+                  Cancel{" "}
+                </Button>
+              )}
+              {mode === "cancel" && ticketInfo[0]?.hits === null && (
+                <p className="mt-4">You cant cancel on passed game.</p>
+              )}
             </div>
-            <div>
-              <div className="flex flex-row items-end gap-4">
-                <button className="mt-4 flex h-12 flex-row items-center gap-2 rounded bg-green-600 px-8 py-2 font-semibold text-white hover:bg-green-700">
-                  Redeem{" "}
-                </button>
-                <p className="text-lg font-semibold text-gray-700">
-                  Not a winning ticket!
-                </p>
-              </div>
-            </div>
-          </div>)}
-          {mode==="cancel" && (<div className="w-2/3 p-4">
-            <p>Loading</p>
-          </div>)}
+          )}
         </div>
       </Modal>
 
-      <Button onClick={() => {
-        setMode("cancel")
-        open()
-        }} className="rounded-md bg-yellow-500 text-white mr-2 text-lg" size="md">
+      <Button
+        onClick={() => {
+          setMode("cancel");
+          open();
+        }}
+        className="mr-2 rounded-md bg-yellow-500 text-lg text-white"
+        size="md"
+      >
         Cancel
       </Button>
-      <Button onClick={() => {
-        setMode("reedem")
-        open()
-        }} className="rounded-md bg-green-600 text-white text-lg" size="md">
+      <Button
+        onClick={() => {
+          setMode("reedem");
+          open();
+        }}
+        className="rounded-md bg-green-600 text-lg text-white"
+        size="md"
+      >
         Reedem
       </Button>
     </>
@@ -590,22 +691,6 @@ const Keno = () => {
   const [numbersToPass, setNumbersToPass] = useState<number[]>([]);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [drawnNumbers, setDrawnNumbers] = useState<number[]>([]);
-
-  // const { data, isLoading } = api.example.hello.useQuery({text: "Keno"})
-
-  // const { data: bets, isLoading: isBetsLoaidng} = api.bets.getAllBets.useQuery()
-
-  // const { data: draws, isLoading: isDrawsLoading} = api.bets.getAllDraws.useQuery()
-
-  // const { data: selectedBet, isLoading: isSelectedBetLoading} = api.bets.getBetById.useQuery({ ticket_number: 2})
-
-  const { mutate, isLoading: isBetPlaced } = api.bets.placeBet.useMutation();
-
-  const { mutate: updateBet, isLoading: isBetUpdating } =
-    api.bets.updateBetByTicketNumber.useMutation();
-
-  const { mutate: deleteBet, isLoading: isBetDeleting } =
-    api.bets.deleteBetByTicketNumber.useMutation();
 
   const toggleNumber = (number: number) => {
     if (picked.includes(number)) {
@@ -643,23 +728,6 @@ const Keno = () => {
       rows.push(<hr key={1} className="my-2" />);
     }
   }
-
-  // console.log(bets)
-  // if(!draws) return
-
-  // draws.map(draw => console.log(draw))
-  // bets?.map(bets => console.log(bets.ticketNumber))
-  // const numbersDrawn: DrawNumbers | undefined = draws[0]?.numbersDrawn as DrawNumbers
-  // console.log(numbersDrawn)
-  // const arrayOfValues = Object.values(numbersDrawn).map(value => parseInt(value));
-
-  // console.log(arrayOfValues.map(item => console.log(item)));
-
-  // mutate({ data: {ticketNumber: 4, gameNumber: 5, hits: 3, isReedeemed: 1, odds: 5, reedeemedAmount: 10, wagerAmount: 10 }})
-
-  // console.log(selectedBet)
-
-  // mutate({ data: { ticketNumber: 5, gameNumber: 5, hits: 3, isReedeemed: 1, odds: 5, reedeemedAmount: 10, wagerAmount: 10 }})
 
   const minuteState = useSelector((state: RootState) => state.timer.minutes);
   const secState = useSelector((state: RootState) => state.timer.seconds);
@@ -737,14 +805,9 @@ const Keno = () => {
             {picked.length > 0 && (
               <button
                 className="m-2 h-fit cursor-pointer rounded-lg bg-green-700 px-4 py-2 text-white"
-                // disabled={picked.length === 0}
-                // onClick={() => drawNumbers()}
                 onClick={() => {
                   updateNumbers({ picked });
                   setModalVisible(true);
-                  // updateBet({ ticketModalVisible(true);Number: 10, data: {reedeemedAmount: 100000}})
-                  // deleteBet({ ticketNumber: 3 });
-                  // mutate({ data: { gameNumber: 6, hits: 3, isReedeemed: 0, odds: 5, reedeemedAmount: 10, wagerAmount: 10 }})
                 }}
               >
                 ADD TO BETSLIP
