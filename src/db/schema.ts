@@ -6,6 +6,7 @@ import {
   index,
   int,
   json,
+  mysqlEnum,
   mysqlTable,
   serial,
   timestamp,
@@ -104,6 +105,8 @@ export const tickets = mysqlTable("tickets", {
   picked_list: json("picked_list").notNull(),
   total_wager: double("total_wager").notNull(),
   total_redeemed: double("total_redeemed"),
+  status: mysqlEnum("status", ['LOST', 'WON', 'UNDETERMINED', 'CANCELLED']).default('UNDETERMINED'),
+  is_redeemed: boolean("is_reedeemed").$default(()=>false),
   timestamp: timestamp("timestamp").defaultNow(),
 });
 

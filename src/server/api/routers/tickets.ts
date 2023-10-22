@@ -34,72 +34,50 @@ export const ticketsRouter = createTRPCRouter({
       return inserted_ticekt_num;
     }),
 
-  redeemTicket: publicProcedure
+    redeemTicket: publicProcedure
     .input(z.object({ ticket_number: z.number() }))
     .mutation(async ({ input }) => {
       return await db.transaction(async (tx) => {
-        const ticket = await tx
-          .select()
-          .from(schema.tickets)
-          .where(eq(schema.tickets.ticket_number, input.ticket_number));
-
-        //   get bets associated with the ticket
+        const ticket = await tx.query.tickets.findFirst({
+          where: eq(schema.tickets.ticket_number, input.ticket_number),
+        });
+        if (!ticket) throw new Error("Ticket not found. Can't be redeemed.");
+        //   get all bets associated with the ticket
         const bets = await tx
           .select()
           .from(schema.bets)
           .where(eq(schema.bets.ticket_number, input.ticket_number));
 
-        const updatedBets = bets.map(async (bet) => {
-          const draw = await tx
-            .select()
-            .from(schema.draws)
-            .where(eq(schema.draws.game_number, bet.game_number));
+        // get total redeemed and total wager
+        const total = bets.reduce(
+          (acc, curr) => {
+            acc.wager += curr.wager_amount;
+            acc.redeemed += curr.reedeemed_amount ? curr.reedeemed_amount : 0;
+            return acc;
+          },
+          { wager: 0, redeemed: 0 },
+        );
 
-          // numbers drawn from draw and picked list from bet
-          const numbersDrawn = JSON.parse(
-            draw[0]?.numbers_drawn as string,
-          ) as number[];
-          const numbersPickedByBet = JSON.parse(
-            bet.picked_list as string,
-          ) as number[];
-          //   get hits
-          const hits = numbersDrawn.filter((number) =>
-            numbersPickedByBet.includes(number),
-          ).length;
-          const winning = getWinningsFromOdds(numbersPickedByBet.length, hits);
-          const newBet = {
-            ...bet,
-            hits: hits,
-            redeemed_amount:
-              winning === undefined ? 0 : winning * bet.wager_amount,
-          };
-          //   update both the bets and tickets table using newBet
-          await tx
-            .update(schema.bets)
-            .set(newBet)
-            .where(eq(schema.bets.bet_id, newBet.bet_id));
-          await tx
-            .update(schema.tickets)
-            .set({
-              total_wager:
-                ticket[0]?.total_wager == undefined
-                  ? newBet.wager_amount
-                  : ticket[0]?.total_wager + newBet.wager_amount,
-              total_redeemed:
-                ticket[0]?.total_redeemed == undefined
-                  ? newBet.redeemed_amount
-                  : ticket[0]?.total_redeemed + newBet.redeemed_amount,
-            })
-            .where(eq(schema.tickets.ticket_number, newBet.bet_id));
-          return newBet;
-        });
-        const updatedTicket = await tx
-          .select()
-          .from(schema.tickets)
+        // update query
+        const newTicket = {
+          ...ticket,
+          total_wager: total.wager,
+          total_redeemed: total.redeemed,
+        };
+
+        await tx
+          .update(schema.tickets)
+          .set({
+            ...newTicket,
+            status: newTicket.total_redeemed > 0 ? "WON" : "LOST",
+            is_redeemed: true,
+          })
           .where(eq(schema.tickets.ticket_number, input.ticket_number));
 
-        //   return both the updated ticket object and the list of all the updated bets,
-        return { updatedTicket, updatedBets };
+        // return the new ticket
+        return await tx.query.tickets.findFirst({
+          where: eq(schema.tickets.ticket_number, input.ticket_number),
+        });
       });
     }),
 
@@ -126,15 +104,15 @@ export const ticketsRouter = createTRPCRouter({
       return result;
     }),
 
-  cancelTicketByTicketNumber: publicProcedure
+    cancelTicketByTicketNumber: publicProcedure
     .input(z.object({ ticket_num: z.number() }))
     .query(async ({ input }) => {
       return await db.transaction(async (tx) => {
         // select ticket by ticket number
-        const ticket = await tx
-          .select()
-          .from(schema.tickets)
-          .where(eq(schema.tickets.ticket_number, input.ticket_num));
+        const ticket = await tx.query.tickets.findFirst({
+          where: eq(schema.tickets.ticket_number, input.ticket_num),
+        });
+        if (!ticket) throw new Error("Ticket not found");
 
         // get all bets by ticketNumber
         const bets = await tx
@@ -152,13 +130,22 @@ export const ticketsRouter = createTRPCRouter({
           // check for passed game
           if (draw === null) {
             return await tx.transaction(async (tx) => {
-              //   add ticket to cancelled tickets
-              await tx.insert(schema.cancelledTickets).values(ticket);
-              // remove the ticket from tickets table
+              // update the tickets status to CANCELLED
               await tx
-                .delete(schema.tickets)
-                .where(eq(schema.tickets.ticket_number, input.ticket_num));
-              return ticket;
+                .update(schema.tickets)
+                .set({ ...ticket, status: "CANCELLED" });
+        
+              // return cancelled ticket
+              return await tx.query.tickets.findFirst({
+                where: eq(schema.tickets.ticket_number, input.ticket_num),
+              });
+              
+              // //   add ticket to cancelled tickets
+              // await tx.insert(schema.cancelledTickets).values(ticket);
+              // // remove the ticket from tickets table
+              // await tx
+              //   .delete(schema.tickets)
+              //   .where(eq(schema.tickets.ticket_number, input.ticket_num));
             });
           } else {
             return "You can't cancel on passed game";

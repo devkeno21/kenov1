@@ -7,6 +7,7 @@ import * as crypto from "crypto"
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { createInsertSchema } from "drizzle-zod";
+import { getWinningsFromOdds } from "~/utils/odds";
 
 type LastInsertType = Array<LastInsertID>
 type LastInsertID = Record<"insertedTicketNum" | "gameNumber", number>
@@ -47,6 +48,61 @@ export const drawsRouter = createTRPCRouter({
       const drawnNumbers =getRNG()
       const data = {...input.data, numbers_drawn: JSON.stringify(drawnNumbers)}
       return await db.insert(schema.draws).values(data);
+    }),
+
+    updateBetsWinningsByDraw: publicProcedure
+    .input(z.object({ game_number: z.number() }))
+    .mutation(async ({ input }) => {
+      return await db.transaction(async (tx) => {
+        // get the draw
+        const draws = schema.draws;
+        const draw = await tx.query.draws.findFirst({
+          where: eq(draws.game_number, input.game_number),
+        });
+        if (!draw?.numbers_drawn) throw new Error("No such draw");
+        // numbers drawn from draw
+        const numbersDrawn = JSON.parse(
+          draw?.numbers_drawn as string,
+        ) as number[];
+
+        // get all bets for this game
+        const bets = await tx
+          .select()
+          .from(schema.bets)
+          .where(eq(schema.bets.game_number, draw.game_number));
+
+        // update each bet
+        const updatedBets = bets.map(async (bet) => {
+          // picked list from the bet
+          const numbersPickedByBet = JSON.parse(
+            bet.picked_list as string,
+          ) as number[];
+          //   get hits
+          const hits = numbersDrawn.filter((number) =>
+            numbersPickedByBet.includes(number),
+          ).length;
+
+          // calculate winnings and update the bet
+          const winning = getWinningsFromOdds(numbersPickedByBet.length, hits);
+          if (!winning) throw new Error("Error while Calculating Odds");
+
+          const newBet = {
+            ...bet,
+            hits: hits,
+            redeemed_amount: winning * bet.wager_amount,
+          };
+
+          //   update the bets table using newBet
+          return await tx.transaction(async (txx) => {
+            await txx
+              .update(schema.bets)
+              .set(newBet)
+              .where(eq(schema.bets.bet_id, newBet.bet_id));
+            return newBet;
+          });
+        });
+        return updatedBets;
+      });
     }),
 
   getLastDraw: publicProcedure.query(async () => {
